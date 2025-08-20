@@ -1,5 +1,5 @@
-import User from "../models/User.js";
 import asyncHandler from "express-async-handler";
+import User from "../models/User.js";
 
 // 👉 Follow/Unfollow a user
 export const followUser = asyncHandler(async (req, res) => {
@@ -8,11 +8,9 @@ export const followUser = asyncHandler(async (req, res) => {
   if (!targetUser) return res.status(404).json({ message: "User not found" });
 
   const index = currentUser.following.indexOf(targetUser._id);
-  if (index === -1) {
-    currentUser.following.push(targetUser._id); // Follow
-  } else {
-    currentUser.following.splice(index, 1); // Unfollow
-  }
+  if (index === -1) currentUser.following.push(targetUser._id); // Follow
+  else currentUser.following.splice(index, 1); // Unfollow
+
   await currentUser.save();
   res.json(currentUser);
 });

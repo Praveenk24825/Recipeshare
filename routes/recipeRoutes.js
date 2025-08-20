@@ -1,30 +1,37 @@
 import express from "express";
-import { protect } from "../middleware/authMiddleware.js";
 import {
   createRecipe,
   getRecipes,
   getRecipeById,
   updateRecipe,
   deleteRecipe,
-  addComment,
   addRating,
-  searchRecipes
+  addComment,
 } from "../controllers/recipeController.js";
+import { protect } from "../middleware/authMiddleware.js";
+import upload from "../middleware/uploadMiddleware.js";
 
 const router = express.Router();
 
-// 🔹 Recipe CRUD
-router.post("/", protect, createRecipe);        // Create recipe (protected)
-router.get("/", getRecipes);                    // Get all recipes
-router.get("/:id", getRecipeById);             // Get recipe by ID
-router.put("/:id", protect, updateRecipe);     // Update recipe (protected)
-router.delete("/:id", protect, deleteRecipe);  // Delete recipe (protected)
+// ✅ Create a recipe with image/video upload
+router.post("/", protect, upload.single("file"), createRecipe);
 
-// 🔹 Comments & Ratings
-router.post("/:id/comment", protect, addComment); // Add comment
-router.post("/:id/rating", protect, addRating);   // Add or update rating
+// ✅ Get all recipes with optional search/filter
+router.get("/", getRecipes);
 
-// 🔹 Search / Filter
-router.get("/search", searchRecipes);           // Search by ingredient/cuisine/dietary
+// ✅ Get single recipe by ID
+router.get("/:id", getRecipeById);
+
+// ✅ Update recipe with image/video upload
+router.put("/:id", protect, upload.single("file"), updateRecipe);
+
+// ✅ Delete recipe
+router.delete("/:id", protect, deleteRecipe);
+
+// ✅ Add rating to recipe
+router.post("/:id/rate", protect, addRating);
+
+// ✅ Add comment to recipe
+router.post("/:id/comment", protect, addComment);
 
 export default router;
