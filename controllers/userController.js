@@ -46,7 +46,7 @@ export const toggleFavorite = asyncHandler(async (req, res) => {
   });
 });
 
-// 👉 Update profile
+// Update profile
 export const updateProfile = asyncHandler(async (req, res) => {
   const user = await User.findById(req.user._id);
   if (!user) return res.status(404).json({ message: "User not found" });
@@ -58,14 +58,14 @@ export const updateProfile = asyncHandler(async (req, res) => {
 
   await user.save();
 
-  // Return safe user data without password
+  // Return all important fields
   res.json({
     _id: user._id,
     name: user.name,
     email: user.email,
-    bio: user.bio,
-    profilePic: user.profilePic,
-    following: user.following,
-    favorites: user.favorites,
+    bio: user.bio || "",
+    profilePic: user.profilePic || "",
+    following: user.following || [],
+    favorites: user.favorites || [],
   });
 });
