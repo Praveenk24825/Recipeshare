@@ -1,32 +1,23 @@
-import MealPlan from '../models/MealPlan.js';
-import Recipe from '../models/Recipe.js';
+import MealPlan from "../models/MealPlan.js";
 
-// Create meal plan
-export const createMealPlan = async (req, res) => {
-  const { title, description, recipes } = req.body;
+// Add a single recipe to existing meal plan
+export const addRecipeToMealPlan = async (req, res) => {
   try {
-    const mealPlan = await MealPlan.create({
-      user: req.user._id,
-      title,
-      description,
-      recipes
-    });
-    res.status(201).json(mealPlan);
+    const { mealPlanId, recipe, day, mealType } = req.body;
+
+    if (!mealPlanId || !recipe || !day || !mealType) {
+      return res.status(400).json({ message: "All fields are required" });
+    }
+
+    const mealPlan = await MealPlan.findById(mealPlanId);
+    if (!mealPlan) return res.status(404).json({ message: "Meal plan not found" });
+
+    // Push new recipe
+    mealPlan.recipes.push({ recipe, day, mealType });
+    await mealPlan.save();
+
+    res.status(200).json(mealPlan);
   } catch (error) {
-    res.status(400).json({ message: error.message });
+    res.status(500).json({ message: error.message });
   }
-};
-
-// Get all meal plans for logged-in user
-export const getMealPlans = async (req, res) => {
-  const mealPlans = await MealPlan.find({ user: req.user._id }).populate('recipes.recipe', 'title ingredients');
-  res.json(mealPlans);
-};
-
-// Delete meal plan
-export const deleteMealPlan = async (req, res) => {
-  const mealPlan = await MealPlan.findById(req.params.id);
-  if (!mealPlan) return res.status(404).json({ message: 'Meal plan not found' });
-  await mealPlan.remove();
-  res.json({ message: 'Meal plan deleted' });
 };
