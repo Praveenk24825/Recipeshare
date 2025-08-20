@@ -1,36 +1,32 @@
-import User from "../models/User.js";
-import Recipe from "../models/Recipe.js";
+import MealPlan from '../models/MealPlan.js';
+import Recipe from '../models/Recipe.js';
 
-// Add a new meal plan
-export const addMealPlan = async (req, res) => {
-  const { name, recipeIds } = req.body; // recipeIds is an array
-  const user = await User.findById(req.user._id);
-  if (!user) return res.status(404).json({ message: "User not found" });
-
-  user.mealPlans.push({ name, recipes: recipeIds });
-  await user.save();
-  res.status(201).json(user.mealPlans);
+// Create meal plan
+export const createMealPlan = async (req, res) => {
+  const { title, description, recipes } = req.body;
+  try {
+    const mealPlan = await MealPlan.create({
+      user: req.user._id,
+      title,
+      description,
+      recipes
+    });
+    res.status(201).json(mealPlan);
+  } catch (error) {
+    res.status(400).json({ message: error.message });
+  }
 };
 
-// Get all meal plans of the logged-in user
+// Get all meal plans for logged-in user
 export const getMealPlans = async (req, res) => {
-  const user = await User.findById(req.user._id).populate({
-    path: "mealPlans.recipes",
-    select: "title ingredients cookingTime servings image"
-  });
-  if (!user) return res.status(404).json({ message: "User not found" });
-  res.json(user.mealPlans);
+  const mealPlans = await MealPlan.find({ user: req.user._id }).populate('recipes.recipe', 'title ingredients');
+  res.json(mealPlans);
 };
 
-// Delete a meal plan
+// Delete meal plan
 export const deleteMealPlan = async (req, res) => {
-  const user = await User.findById(req.user._id);
-  if (!user) return res.status(404).json({ message: "User not found" });
-
-  const plan = user.mealPlans.id(req.params.planId);
-  if (!plan) return res.status(404).json({ message: "Meal plan not found" });
-
-  plan.remove();
-  await user.save();
-  res.json(user.mealPlans);
+  const mealPlan = await MealPlan.findById(req.params.id);
+  if (!mealPlan) return res.status(404).json({ message: 'Meal plan not found' });
+  await mealPlan.remove();
+  res.json({ message: 'Meal plan deleted' });
 };
