@@ -1,96 +1,80 @@
-import asyncHandler from 'express-async-handler';
-import Recipe from '../models/Recipe.js';
+import Recipe from "../models/Recipe.js";
 
-// Create a recipe
-const createRecipe = asyncHandler(async (req, res) => {
-  const { title, ingredients, steps, cookingTime, servings, image, video } = req.body;
+// ➡️ CREATE a recipe
+export const createRecipe = async (req, res) => {
+  try {
+    const { title, ingredients, steps, cookingTime, servings } = req.body;
 
-  const recipe = await Recipe.create({
-    user: req.user._id,
-    title,
-    ingredients,
-    steps,
-    cookingTime,
-    servings,
-    image,
-    video
-  });
+    const newRecipe = await Recipe.create({
+      title,
+      ingredients: Array.isArray(ingredients) ? ingredients : ingredients.split(","),
+      steps: Array.isArray(steps) ? steps : steps.split(","),
+      cookingTime,
+      servings,
+      image: req.file ? req.file.path : null,
+      createdBy: req.user._id,
+    });
 
-  res.status(201).json(recipe);
-});
-
-// Get all recipes
-const getRecipes = asyncHandler(async (req, res) => {
-  const recipes = await Recipe.find({});
-  res.json(recipes);
-});
-
-// Get single recipe
-const getRecipeById = asyncHandler(async (req, res) => {
-  const recipe = await Recipe.findById(req.params.id);
-  if (recipe) res.json(recipe);
-  else {
-    res.status(404);
-    throw new Error('Recipe not found');
+    res.status(201).json(newRecipe);
+  } catch (err) {
+    res.status(400).json({ message: err.message });
   }
-});
+};
 
-// Update recipe
-const updateRecipe = asyncHandler(async (req, res) => {
-  const recipe = await Recipe.findById(req.params.id);
-  if (!recipe) {
-    res.status(404);
-    throw new Error('Recipe not found');
+// ➡️ GET all recipes
+export const getRecipes = async (req, res) => {
+  try {
+    const recipes = await Recipe.find().populate("createdBy", "name email");
+    res.status(200).json(recipes);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
   }
+};
 
-  Object.assign(recipe, req.body);
-  const updatedRecipe = await recipe.save();
-  res.json(updatedRecipe);
-});
-
-// Delete recipe
-const deleteRecipe = asyncHandler(async (req, res) => {
-  const recipe = await Recipe.findById(req.params.id);
-  if (!recipe) {
-    res.status(404);
-    throw new Error('Recipe not found');
+// ➡️ GET single recipe
+export const getRecipeById = async (req, res) => {
+  try {
+    const recipe = await Recipe.findById(req.params.id).populate("createdBy", "name email");
+    if (!recipe) return res.status(404).json({ message: "Recipe not found" });
+    res.status(200).json(recipe);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
   }
-  await recipe.remove();
-  res.json({ message: 'Recipe removed' });
-});
+};
 
-// Rate recipe
-const rateRecipe = asyncHandler(async (req, res) => {
-  const recipe = await Recipe.findById(req.params.id);
-  if (!recipe) {
-    res.status(404);
-    throw new Error('Recipe not found');
+// ➡️ UPDATE a recipe
+export const updateRecipe = async (req, res) => {
+  try {
+    const { title, ingredients, steps, cookingTime, servings } = req.body;
+
+    const updatedRecipe = await Recipe.findByIdAndUpdate(
+      req.params.id,
+      {
+        title,
+        ingredients: Array.isArray(ingredients) ? ingredients : ingredients.split(","),
+        steps: Array.isArray(steps) ? steps : steps.split(","),
+        cookingTime,
+        servings,
+        image: req.file ? req.file.path : undefined,
+      },
+      { new: true }
+    );
+
+    if (!updatedRecipe) return res.status(404).json({ message: "Recipe not found" });
+
+    res.status(200).json(updatedRecipe);
+  } catch (err) {
+    res.status(400).json({ message: err.message });
   }
-  const { rating } = req.body;
-  recipe.ratings.push({ user: req.user._id, rating });
-  await recipe.save();
-  res.json(recipe);
-});
+};
 
-// Comment on recipe
-const commentRecipe = asyncHandler(async (req, res) => {
-  const recipe = await Recipe.findById(req.params.id);
-  if (!recipe) {
-    res.status(404);
-    throw new Error('Recipe not found');
+// ➡️ DELETE a recipe
+export const deleteRecipe = async (req, res) => {
+  try {
+    const recipe = await Recipe.findByIdAndDelete(req.params.id);
+    if (!recipe) return res.status(404).json({ message: "Recipe not found" });
+    res.status(200).json({ message: "Recipe deleted successfully" });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
   }
-  const { comment } = req.body;
-  recipe.comments.push({ user: req.user._id, comment });
-  await recipe.save();
-  res.json(recipe);
-});
-
-export {
-  createRecipe,
-  getRecipes,
-  getRecipeById,
-  updateRecipe,
-  deleteRecipe,
-  rateRecipe,
-  commentRecipe
 };
