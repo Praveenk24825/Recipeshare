@@ -13,15 +13,18 @@ import {
 
 const router = express.Router();
 
-router.post("/", protect, createRecipe);
-router.get("/", getRecipes);
-router.get("/search", searchRecipes); // For ingredient/cuisine/dietary filters
-router.get("/:id", getRecipeById);
-router.put("/:id", protect, updateRecipe);
-router.delete("/:id", protect, deleteRecipe);
+// 🔹 Recipe CRUD
+router.post("/", protect, createRecipe);        // Create recipe (protected)
+router.get("/", getRecipes);                    // Get all recipes
+router.get("/:id", getRecipeById);             // Get recipe by ID
+router.put("/:id", protect, updateRecipe);     // Update recipe (protected)
+router.delete("/:id", protect, deleteRecipe);  // Delete recipe (protected)
 
-// Comments & Ratings
-router.post("/:id/comment", protect, addComment);
-router.post("/:id/rating", protect, addRating);
+// 🔹 Comments & Ratings
+router.post("/:id/comment", protect, addComment); // Add comment
+router.post("/:id/rating", protect, addRating);   // Add or update rating
+
+// 🔹 Search / Filter
+router.get("/search", searchRecipes);           // Search by ingredient/cuisine/dietary
 
 export default router;
