@@ -1,21 +1,21 @@
-import asyncHandler from "express-async-handler";
 import User from "../models/User.js";
+import asyncHandler from "express-async-handler";
 
-// 👉 Follow/Unfollow a user
+// Follow/Unfollow a user
 export const followUser = asyncHandler(async (req, res) => {
   const targetUser = await User.findById(req.params.id);
   const currentUser = await User.findById(req.user._id);
   if (!targetUser) return res.status(404).json({ message: "User not found" });
 
   const index = currentUser.following.indexOf(targetUser._id);
-  if (index === -1) currentUser.following.push(targetUser._id); // Follow
-  else currentUser.following.splice(index, 1); // Unfollow
+  if (index === -1) currentUser.following.push(targetUser._id);
+  else currentUser.following.splice(index, 1);
 
   await currentUser.save();
   res.json(currentUser);
 });
 
-// 👉 Add/Remove favorite recipe
+// Add/Remove favorite recipe
 export const toggleFavorite = asyncHandler(async (req, res) => {
   const user = await User.findById(req.user._id);
   const recipeId = req.params.recipeId;
@@ -28,7 +28,7 @@ export const toggleFavorite = asyncHandler(async (req, res) => {
   res.json(user);
 });
 
-// 👉 Update profile
+// Update profile
 export const updateProfile = asyncHandler(async (req, res) => {
   const user = await User.findById(req.user._id);
   if (!user) return res.status(404).json({ message: "User not found" });

@@ -3,10 +3,10 @@ import dotenv from "dotenv";
 import connectDB from "./config/db.js";
 
 // Routes
-import userRoutes from "./routes/userRoutes.js";
-import authRoutes from "./routes/authRoutes.js"; // register/login
-import recipeRoutes from "./routes/recipeRoutes.js";
-import mealPlanRoutes from "./routes/mealPlanRoutes.js";
+import userRoutes from "./routes/userRoutes.js";         // follow, favorite, profile
+import authRoutes from "./routes/authRoutes.js";         // register/login
+import recipeRoutes from "./routes/recipeRoutes.js";     // CRUD, ratings, comments
+import mealPlanRoutes from "./routes/mealPlanRoutes.js"; // meal plan CRUD
 
 // Middleware
 import { errorHandler } from "./middleware/errorMiddleware.js";
@@ -19,7 +19,7 @@ dotenv.config();
 connectDB();
 
 const app = express();
-app.use(express.json()); // for parsing JSON
+app.use(express.json()); // parse JSON
 
 // Setup __dirname for ES modules
 const __filename = fileURLToPath(import.meta.url);
@@ -29,10 +29,10 @@ const __dirname = path.dirname(__filename);
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
 // API routes
-app.use("/api/users", userRoutes);         // follow, favorite, profile
-app.use("/api/auth", authRoutes);          // register/login
-app.use("/api/recipes", recipeRoutes);     // CRUD, ratings, comments
-app.use("/api/mealplans", mealPlanRoutes); // meal plan CRUD
+app.use("/api/users", userRoutes);
+app.use("/api/auth", authRoutes);
+app.use("/api/recipes", recipeRoutes);
+app.use("/api/mealplans", mealPlanRoutes);
 
 // Root route
 app.get("/", (req, res) => {
