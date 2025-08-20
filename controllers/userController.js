@@ -3,11 +3,14 @@ import asyncHandler from "express-async-handler";
 
 // 👉 Follow/Unfollow a user
 export const followUser = asyncHandler(async (req, res) => {
-  const targetUserId = req.params.id.trim(); // Trim any extra whitespace/newlines
+  const targetUserId = req.params.id.trim(); // Trim whitespace
   const targetUser = await User.findById(targetUserId);
   const currentUser = await User.findById(req.user._id);
 
   if (!targetUser) return res.status(404).json({ message: "User not found" });
+
+  // Ensure following array exists
+  if (!currentUser.following) currentUser.following = [];
 
   const index = currentUser.following.indexOf(targetUser._id);
   if (index === -1) currentUser.following.push(targetUser._id); // Follow
@@ -19,17 +22,19 @@ export const followUser = asyncHandler(async (req, res) => {
     _id: currentUser._id,
     name: currentUser.name,
     email: currentUser.email,
-    bio: currentUser.bio,
-    profilePic: currentUser.profilePic,
-    following: currentUser.following,
-    favorites: currentUser.favorites,
+    bio: currentUser.bio || "",
+    profilePic: currentUser.profilePic || "",
+    following: currentUser.following || [],
+    favorites: currentUser.favorites || [],
   });
 });
 
 // 👉 Add/Remove favorite recipe
 export const toggleFavorite = asyncHandler(async (req, res) => {
   const user = await User.findById(req.user._id);
-  const recipeId = req.params.recipeId.trim(); // Trim any whitespace
+  const recipeId = req.params.recipeId.trim();
+
+  if (!user.favorites) user.favorites = [];
 
   const index = user.favorites.indexOf(recipeId);
   if (index === -1) user.favorites.push(recipeId);
@@ -41,10 +46,10 @@ export const toggleFavorite = asyncHandler(async (req, res) => {
     _id: user._id,
     name: user.name,
     email: user.email,
-    bio: user.bio,
-    profilePic: user.profilePic,
-    following: user.following,
-    favorites: user.favorites,
+    bio: user.bio || "",
+    profilePic: user.profilePic || "",
+    following: user.following || [],
+    favorites: user.favorites || [],
   });
 });
 
