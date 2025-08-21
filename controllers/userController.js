@@ -4,15 +4,15 @@ import asyncHandler from "express-async-handler";
 // 👉 Follow/Unfollow a user
 export const followUser = asyncHandler(async (req, res) => {
   const targetUserId = req.params.id.trim(); // Trim whitespace
-  const targetUser = await User.findById(targetUserId);
   const currentUser = await User.findById(req.user._id);
+  const targetUser = await User.findById(targetUserId);
 
   if (!targetUser) return res.status(404).json({ message: "User not found" });
 
   // Ensure following array exists
   if (!currentUser.following) currentUser.following = [];
 
-  const index = currentUser.following.indexOf(targetUser._id);
+  const index = currentUser.following.findIndex(id => id.toString() === targetUser._id.toString());
   if (index === -1) currentUser.following.push(targetUser._id); // Follow
   else currentUser.following.splice(index, 1); // Unfollow
 
@@ -24,19 +24,19 @@ export const followUser = asyncHandler(async (req, res) => {
     email: currentUser.email,
     bio: currentUser.bio || "",
     profilePic: currentUser.profilePic || "",
-    following: currentUser.following || [],
+    following: currentUser.following,
     favorites: currentUser.favorites || [],
   });
 });
 
 // 👉 Add/Remove favorite recipe
 export const toggleFavorite = asyncHandler(async (req, res) => {
-  const user = await User.findById(req.user._id);
   const recipeId = req.params.recipeId.trim();
+  const user = await User.findById(req.user._id);
 
   if (!user.favorites) user.favorites = [];
 
-  const index = user.favorites.indexOf(recipeId);
+  const index = user.favorites.findIndex(id => id.toString() === recipeId);
   if (index === -1) user.favorites.push(recipeId);
   else user.favorites.splice(index, 1);
 
@@ -49,7 +49,7 @@ export const toggleFavorite = asyncHandler(async (req, res) => {
     bio: user.bio || "",
     profilePic: user.profilePic || "",
     following: user.following || [],
-    favorites: user.favorites || [],
+    favorites: user.favorites,
   });
 });
 
