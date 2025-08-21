@@ -1,6 +1,7 @@
 import express from "express";
 import dotenv from "dotenv";
 import connectDB from "./config/db.js";
+import cors from "cors"; // ✅ Import cors
 
 // Routes
 import userRoutes from "./routes/userRoutes.js";        // follow, favorite, profile
@@ -20,6 +21,14 @@ connectDB();
 
 const app = express();
 app.use(express.json()); // Parse JSON
+
+// ✅ Fix CORS issue
+app.use(
+  cors({
+    origin: ["http://localhost:5175", "https://your-frontend.netlify.app"], // add both local + deployed frontend
+    credentials: true,
+  })
+);
 
 // Setup __dirname for ES modules
 const __filename = fileURLToPath(import.meta.url);
@@ -44,4 +53,4 @@ app.use(errorHandler);
 
 // Start server
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+app.listen(PORT, () => console.log(`✅ Server running on port ${PORT}`));
