@@ -8,7 +8,7 @@ const router = express.Router();
 router.put("/follow/:id", protect, followUser);
 
 // Add / Remove favorite
-router.put("/favorite/:recipeId", protect, toggleFavorite);
+router.post("/favorite/:recipeId", protect, toggleFavorite);
 
 // Update profile
 router.put("/profile", protect, updateProfile);
