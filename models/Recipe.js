@@ -24,4 +24,5 @@ const recipeSchema = new mongoose.Schema({
   comments: [commentSchema],
 }, { timestamps: true });
 
-export default mongoose.model("Recipe", recipeSchema);
+const Recipe = mongoose.model("Recipe", recipeSchema);
+export default Recipe;
