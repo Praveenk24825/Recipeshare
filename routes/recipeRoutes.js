@@ -9,29 +9,18 @@ import {
   addComment,
 } from "../controllers/recipeController.js";
 import { protect } from "../middleware/authMiddleware.js";
-import upload from "../middleware/uploadMiddleware.js";
 
 const router = express.Router();
 
-// ✅ Create a recipe with image/video upload
-router.post("/", protect, upload.single("file"), createRecipe);
-
-// ✅ Get all recipes with optional search/filter
+// Recipes CRUD
+router.post("/", protect, createRecipe);
 router.get("/", getRecipes);
-
-// ✅ Get single recipe by ID
 router.get("/:id", getRecipeById);
-
-// ✅ Update recipe with image/video upload
-router.put("/:id", protect, upload.single("file"), updateRecipe);
-
-// ✅ Delete recipe
+router.put("/:id", protect, updateRecipe);
 router.delete("/:id", protect, deleteRecipe);
 
-// ✅ Add rating to recipe
-router.post("/:id/rate", protect, addRating);
-
-// ✅ Add comment to recipe
-router.post("/:id/comment", protect, addComment);
+// Ratings & Comments
+router.post("/:id/ratings", protect, addRating);
+router.post("/:id/comments", protect, addComment);
 
 export default router;
