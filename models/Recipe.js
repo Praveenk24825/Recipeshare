@@ -21,7 +21,7 @@ const recipeSchema = new mongoose.Schema({
   videoUrl: { type: String },
   createdBy: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
   ratings: [ratingSchema],
-  comments: [commentSchema]
+  comments: [commentSchema],
 }, { timestamps: true });
 
 export default mongoose.model("Recipe", recipeSchema);

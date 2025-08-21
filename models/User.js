@@ -5,10 +5,10 @@ const userSchema = new mongoose.Schema({
   name: { type: String, required: true },
   email: { type: String, required: true, unique: true },
   password: { type: String, required: true },
-  bio: { type: String, default: "" },                   // Add bio
-  profilePic: { type: String, default: "" },            // Add profile picture
-  following: [{ type: mongoose.Schema.Types.ObjectId, ref: "User", default: [] }], // Followed users
-  favorites: [{ type: mongoose.Schema.Types.ObjectId, ref: "Recipe", default: [] }], // Favorite recipes
+  bio: { type: String, default: "" },
+  profilePic: { type: String, default: "" },
+  following: [{ type: mongoose.Schema.Types.ObjectId, ref: "User", default: [] }],
+  favorites: [{ type: mongoose.Schema.Types.ObjectId, ref: "Recipe", default: [] }],
 }, { timestamps: true });
 
 // Hash password before saving
@@ -23,5 +23,4 @@ userSchema.methods.matchPassword = async function(enteredPassword) {
   return await bcrypt.compare(enteredPassword, this.password);
 };
 
-const User = mongoose.model("User", userSchema);
-export default User;
+export default mongoose.model("User", userSchema);
