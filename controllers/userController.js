@@ -1,6 +1,24 @@
 import User from "../models/User.js";
 import asyncHandler from "express-async-handler";
 
+
+
+export const getProfile = asyncHandler(async (req, res) => {
+  const user = await User.findById(req.user._id);
+
+  if (!user) return res.status(404).json({ message: "User not found" });
+
+  res.json({
+    _id: user._id,
+    name: user.name,
+    email: user.email,
+    bio: user.bio || "",
+    profilePic: user.profilePic || "",
+    following: user.following || [],
+    favorites: user.favorites || [],
+  });
+});
+
 // 👉 Follow/Unfollow a user
 export const followUser = asyncHandler(async (req, res) => {
   const targetUserId = req.params.id.trim(); // Trim whitespace
