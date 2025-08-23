@@ -13,13 +13,41 @@ import { upload } from "../middleware/uploadMiddleware.js";
 
 const router = express.Router();
 
-router.post("/", protect, upload.single("file"), createRecipe);
+// Create Recipe: accept both image & video
+router.post(
+  "/",
+  protect,
+  upload.fields([
+    { name: "image", maxCount: 1 },
+    { name: "video", maxCount: 1 },
+  ]),
+  createRecipe
+);
+
+// Get all recipes
 router.get("/", getRecipes);
+
+// Get recipe by ID
 router.get("/:id", getRecipeById);
-router.put("/:id", protect, upload.single("file"), updateRecipe);
+
+// Update recipe
+router.put(
+  "/:id",
+  protect,
+  upload.fields([
+    { name: "image", maxCount: 1 },
+    { name: "video", maxCount: 1 },
+  ]),
+  updateRecipe
+);
+
+// Delete recipe
 router.delete("/:id", protect, deleteRecipe);
 
+// Add rating
 router.post("/:id/ratings", protect, addRating);
+
+// Add comment
 router.post("/:id/comments", protect, addComment);
 
 export default router;
