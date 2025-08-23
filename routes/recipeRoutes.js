@@ -1,3 +1,4 @@
+// routes/recipeRoutes.js
 import express from "express";
 import upload from "../middleware/uploadMiddleware.js";
 import {
@@ -12,7 +13,7 @@ import {
 
 const router = express.Router();
 
-// ✅ Create recipe with image & video upload
+// ✅ Create recipe with image + video upload
 router.post(
   "/",
   upload.fields([
@@ -25,10 +26,10 @@ router.post(
 // ✅ Get all recipes
 router.get("/", getRecipes);
 
-// ✅ Get single recipe
+// ✅ Get recipe by ID
 router.get("/:id", getRecipeById);
 
-// ✅ Update recipe (allow image/video upload)
+// ✅ Update recipe with optional new image/video
 router.put(
   "/:id",
   upload.fields([
