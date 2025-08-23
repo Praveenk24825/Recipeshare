@@ -26,7 +26,7 @@ app.use(express.json()); // Parse JSON
 app.use(
   cors({
     origin: ["http://localhost:5173", "https://your-frontend.netlify.app"], // add both local + deployed frontend
-    credentials: true,
+  
   })
 );
 
