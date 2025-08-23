@@ -1,44 +1,33 @@
 import Recipe from "../models/Recipe.js";
 
 // Create Recipe with image + video upload
-const parseJSON = (data) => {
-  try {
-    return data ? JSON.parse(data) : [];
-  } catch (err) {
-    return []; // fallback to empty array if parsing fails
-  }
-};
-
 export const createRecipe = async (req, res) => {
   try {
-    const {
+    console.log("REQ.BODY:", req.body);
+    console.log("REQ.FILES:", req.files);
+
+    const { title, description, ingredients, steps, cookingTime, servings } = req.body;
+
+    if (!title || !description) {
+      return res.status(400).json({ message: "Title and description are required" });
+    }
+
+    const newRecipe = new Recipe({
       title,
       description,
-      ingredients,
-      steps,
+      ingredients: ingredients ? JSON.parse(ingredients) : [],
+      steps: steps ? JSON.parse(steps) : [],
       cookingTime,
       servings,
-    } = req.body;
-
-    const imageUrl = req.files?.image ? `/uploads/${req.files.image[0].filename}` : null;
-    const videoUrl = req.files?.video ? `/uploads/${req.files.video[0].filename}` : null;
-
-    const recipe = new Recipe({
-      title,
-      description,
-      ingredients: parseJSON(ingredients),
-      steps: parseJSON(steps),
-      cookingTime,
-      servings,
-      imageUrl,
-      videoUrl,
-      createdBy: req.user?._id || null,
+      user: req.user._id,
+      imageUrl: req.files?.image ? req.files.image[0].path : "",
+      videoUrl: req.files?.video ? req.files.video[0].path : "",
     });
 
-    await recipe.save();
-    res.status(201).json(recipe);
+    const savedRecipe = await newRecipe.save();
+    res.status(201).json(savedRecipe);
   } catch (error) {
-    console.error("Add recipe error:", error); // log full error
+    console.error("Create recipe error:", error);
     res.status(500).json({ message: "Server error", error: error.message });
   }
 };
