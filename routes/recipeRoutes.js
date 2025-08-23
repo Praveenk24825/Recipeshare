@@ -1,6 +1,4 @@
-// routes/recipeRoutes.js
 import express from "express";
-import upload from "../middleware/uploadMiddleware.js";
 import {
   createRecipe,
   getRecipes,
@@ -10,12 +8,15 @@ import {
   addComment,
   addRating,
 } from "../controllers/recipeController.js";
+import upload from "../middleware/uploadMiddleware.js"; // ✅ matches default export
+import { protect } from "../middleware/authMiddleware.js";
 
 const router = express.Router();
 
-// ✅ Create recipe with image + video upload
+// Create recipe with image/video upload
 router.post(
   "/",
+  protect,
   upload.fields([
     { name: "image", maxCount: 1 },
     { name: "video", maxCount: 1 },
@@ -23,15 +24,16 @@ router.post(
   createRecipe
 );
 
-// ✅ Get all recipes
+// Get all recipes
 router.get("/", getRecipes);
 
-// ✅ Get recipe by ID
+// Get single recipe
 router.get("/:id", getRecipeById);
 
-// ✅ Update recipe with optional new image/video
+// Update recipe
 router.put(
   "/:id",
+  protect,
   upload.fields([
     { name: "image", maxCount: 1 },
     { name: "video", maxCount: 1 },
@@ -39,13 +41,13 @@ router.put(
   updateRecipe
 );
 
-// ✅ Delete recipe
-router.delete("/:id", deleteRecipe);
+// Delete recipe
+router.delete("/:id", protect, deleteRecipe);
 
-// ✅ Add comment
-router.post("/:id/comments", addComment);
+// Add comment
+router.post("/:id/comment", protect, addComment);
 
-// ✅ Add rating
-router.post("/:id/ratings", addRating);
+// Add rating
+router.post("/:id/rating", protect, addRating);
 
 export default router;

@@ -1,42 +1,27 @@
-// middleware/uploadMiddleware.js
 import multer from "multer";
 import path from "path";
-import { fileURLToPath } from "url";
 
-// For ESM (__dirname fix)
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-
-// Storage engine
+// Storage configuration
 const storage = multer.diskStorage({
-  destination(req, file, cb) {
-    cb(null, "uploads/"); // make sure you have 'uploads' folder
+  destination: function (req, file, cb) {
+    cb(null, "uploads/"); // folder for uploads
   },
-  filename(req, file, cb) {
-    cb(
-      null,
-      `${file.fieldname}-${Date.now()}${path.extname(file.originalname)}`
-    );
+  filename: function (req, file, cb) {
+    const ext = path.extname(file.originalname);
+    cb(null, `${Date.now()}-${file.fieldname}${ext}`);
   },
 });
 
-// File filter (allow only images/videos)
-function fileFilter(req, file, cb) {
-  const allowed = /jpeg|jpg|png|gif|mp4|mov|avi/;
-  const ext = path.extname(file.originalname).toLowerCase();
-  if (allowed.test(ext)) {
+// File filter
+const fileFilter = (req, file, cb) => {
+  if (file.mimetype.startsWith("image/") || file.mimetype.startsWith("video/")) {
     cb(null, true);
   } else {
-    cb(new Error("Only images and videos are allowed"), false);
+    cb(new Error("Only images and videos are allowed!"), false);
   }
-}
+};
 
-const upload = multer({
-  storage,
-  fileFilter,
-  limits: { fileSize: 2000 * 1024 * 1024 }, // 50MB max
-});
+// Multer upload instance
+const upload = multer({ storage, fileFilter });
 
-// ✅ Default export
-export default upload;
-  
+export default upload; // ✅ default export
