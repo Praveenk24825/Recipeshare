@@ -1,95 +1,97 @@
 import User from "../models/User.js";
-import asyncHandler from "express-async-handler";
+import bcrypt from "bcryptjs";
 
+// ✅ Follow / Unfollow a user
+export const followUser = async (req, res) => {
+  try {
+    const userToFollow = await User.findById(req.params.id);
+    const currentUser = await User.findById(req.user._id);
 
+    if (!userToFollow) return res.status(404).json({ message: "User not found" });
 
-export const getProfile = asyncHandler(async (req, res) => {
-  const user = await User.findById(req.user._id);
+    if (currentUser.following.includes(userToFollow._id)) {
+      // Unfollow
+      currentUser.following = currentUser.following.filter(
+        (id) => id.toString() !== userToFollow._id.toString()
+      );
+      await currentUser.save();
+      return res.json({ message: `Unfollowed ${userToFollow.name}` });
+    } else {
+      // Follow
+      currentUser.following.push(userToFollow._id);
+      await currentUser.save();
+      return res.json({ message: `Followed ${userToFollow.name}` });
+    }
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
 
-  if (!user) return res.status(404).json({ message: "User not found" });
+// ✅ Toggle favorite recipe
+export const toggleFavorite = async (req, res) => {
+  try {
+    const user = await User.findById(req.user._id);
+    const recipeId = req.params.recipeId;
 
-  res.json({
-    _id: user._id,
-    name: user.name,
-    email: user.email,
-    bio: user.bio || "",
-    profilePic: user.profilePic || "",
-    following: user.following || [],
-    favorites: user.favorites || [],
-  });
-});
+    if (!user) return res.status(404).json({ message: "User not found" });
 
-// 👉 Follow/Unfollow a user
-export const followUser = asyncHandler(async (req, res) => {
-  const targetUserId = req.params.id.trim(); // Trim whitespace
-  const currentUser = await User.findById(req.user._id);
-  const targetUser = await User.findById(targetUserId);
+    if (user.favorites.includes(recipeId)) {
+      user.favorites = user.favorites.filter((id) => id.toString() !== recipeId);
+      await user.save();
+      return res.json({ message: "Removed from favorites" });
+    } else {
+      user.favorites.push(recipeId);
+      await user.save();
+      return res.json({ message: "Added to favorites" });
+    }
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
 
-  if (!targetUser) return res.status(404).json({ message: "User not found" });
+// ✅ Get current user profile
+export const getProfile = async (req, res) => {
+  try {
+    const user = await User.findById(req.user._id).select("-password").populate("favorites");
+    if (!user) return res.status(404).json({ message: "User not found" });
+    res.json(user);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
 
-  // Ensure following array exists
-  if (!currentUser.following) currentUser.following = [];
+// ✅ Update profile
+export const updateProfile = async (req, res) => {
+  try {
+    const user = await User.findById(req.user._id);
+    if (!user) return res.status(404).json({ message: "User not found" });
 
-  const index = currentUser.following.findIndex(id => id.toString() === targetUser._id.toString());
-  if (index === -1) currentUser.following.push(targetUser._id); // Follow
-  else currentUser.following.splice(index, 1); // Unfollow
+    const { name, email, password, bio, profilePic } = req.body;
 
-  await currentUser.save();
+    if (name) user.name = name;
+    if (email) user.email = email;
+    if (bio) user.bio = bio;
+    if (profilePic) user.profilePic = profilePic;
+    if (password) {
+      const salt = await bcrypt.genSalt(10);
+      user.password = await bcrypt.hash(password, salt);
+    }
 
-  res.json({
-    _id: currentUser._id,
-    name: currentUser.name,
-    email: currentUser.email,
-    bio: currentUser.bio || "",
-    profilePic: currentUser.profilePic || "",
-    following: currentUser.following,
-    favorites: currentUser.favorites || [],
-  });
-});
+    await user.save();
+    res.json({ message: "Profile updated successfully" });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
 
-// 👉 Add/Remove favorite recipe
-export const toggleFavorite = asyncHandler(async (req, res) => {
-  const recipeId = req.params.recipeId.trim();
-  const user = await User.findById(req.user._id);
+// ✅ Get user's favorite recipes
+export const getFavorites = async (req, res) => {
+  try {
+    const user = await User.findById(req.user._id).populate("favorites");
+    if (!user) return res.status(404).json({ message: "User not found" });
 
-  if (!user.favorites) user.favorites = [];
-
-  const index = user.favorites.findIndex(id => id.toString() === recipeId);
-  if (index === -1) user.favorites.push(recipeId);
-  else user.favorites.splice(index, 1);
-
-  await user.save();
-
-  res.json({
-    _id: user._id,
-    name: user.name,
-    email: user.email,
-    bio: user.bio || "",
-    profilePic: user.profilePic || "",
-    following: user.following || [],
-    favorites: user.favorites,
-  });
-});
-
-// 👉 Update profile
-export const updateProfile = asyncHandler(async (req, res) => {
-  const user = await User.findById(req.user._id);
-  if (!user) return res.status(404).json({ message: "User not found" });
-
-  const { name, bio, profilePic } = req.body;
-  if (name) user.name = name;
-  if (bio) user.bio = bio;
-  if (profilePic) user.profilePic = profilePic;
-
-  await user.save();
-
-  res.json({
-    _id: user._id,
-    name: user.name,
-    email: user.email,
-    bio: user.bio || "",
-    profilePic: user.profilePic || "",
-    following: user.following || [],
-    favorites: user.favorites || [],
-  });
-});
+    res.json(user.favorites);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
