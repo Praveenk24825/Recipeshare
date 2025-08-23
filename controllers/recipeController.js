@@ -2,28 +2,45 @@ import Recipe from "../models/Recipe.js";
 import asyncHandler from "express-async-handler";
 import path from "path";
 
-// @desc    Create a recipe
+// ✅ Create Recipe
 // @route   POST /api/recipes
 // @access  Private
 export const createRecipe = asyncHandler(async (req, res) => {
-  const recipeData = { ...req.body, createdBy: req.user._id };
+  try {
+    const { title, description, ingredients, steps } = req.body;
 
-  // Handle uploaded files
-  if (req.files) {
-    if (req.files.image && req.files.image.length > 0) {
-      recipeData.imageUrl = `/uploads/${req.files.image[0].filename}`;
+    if (!title || !description || !ingredients || !steps) {
+      return res.status(400).json({ message: "Please fill all required fields" });
     }
-    if (req.files.video && req.files.video.length > 0) {
-      recipeData.videoUrl = `/uploads/${req.files.video[0].filename}`;
+
+    const recipeData = {
+      title,
+      description,
+      ingredients: Array.isArray(ingredients) ? ingredients : ingredients.split(","),
+      steps: Array.isArray(steps) ? steps : steps.split(","),
+      createdBy: req.user._id,
+    };
+
+    // ✅ Handle uploaded files
+    if (req.files) {
+      if (req.files.image && req.files.image.length > 0) {
+        recipeData.imageUrl = `/uploads/${req.files.image[0].filename}`;
+      }
+      if (req.files.video && req.files.video.length > 0) {
+        recipeData.videoUrl = `/uploads/${req.files.video[0].filename}`;
+      }
     }
+
+    const recipe = new Recipe(recipeData);
+    await recipe.save();
+
+    res.status(201).json({ message: "Recipe added successfully", recipe });
+  } catch (error) {
+    res.status(500).json({ message: "Failed to add recipe", error: error.message });
   }
-
-  const recipe = new Recipe(recipeData);
-  await recipe.save();
-  res.status(201).json(recipe);
 });
 
-// @desc    Get all recipes
+// ✅ Get All Recipes
 // @route   GET /api/recipes
 // @access  Public
 export const getRecipes = asyncHandler(async (req, res) => {
@@ -31,31 +48,32 @@ export const getRecipes = asyncHandler(async (req, res) => {
   res.json(recipes);
 });
 
-// @desc    Get recipe by ID
+// ✅ Get Recipe by ID
 // @route   GET /api/recipes/:id
 // @access  Public
 export const getRecipeById = asyncHandler(async (req, res) => {
   const recipe = await Recipe.findById(req.params.id).populate("createdBy", "name email");
   if (!recipe) {
-    res.status(404);
-    throw new Error("Recipe not found");
+    return res.status(404).json({ message: "Recipe not found" });
   }
   res.json(recipe);
 });
 
-// @desc    Update a recipe
+// ✅ Update Recipe
 // @route   PUT /api/recipes/:id
 // @access  Private
 export const updateRecipe = asyncHandler(async (req, res) => {
   const recipe = await Recipe.findById(req.params.id);
   if (!recipe) {
-    res.status(404);
-    throw new Error("Recipe not found");
+    return res.status(404).json({ message: "Recipe not found" });
   }
 
-  Object.assign(recipe, req.body);
+  recipe.title = req.body.title || recipe.title;
+  recipe.description = req.body.description || recipe.description;
+  recipe.ingredients = req.body.ingredients ? req.body.ingredients.split(",") : recipe.ingredients;
+  recipe.steps = req.body.steps ? req.body.steps.split(",") : recipe.steps;
 
-  // Handle uploaded files
+  // ✅ Handle uploaded files
   if (req.files) {
     if (req.files.image && req.files.image.length > 0) {
       recipe.imageUrl = `/uploads/${req.files.image[0].filename}`;
@@ -66,24 +84,23 @@ export const updateRecipe = asyncHandler(async (req, res) => {
   }
 
   await recipe.save();
-  res.json(recipe);
+  res.json({ message: "Recipe updated successfully", recipe });
 });
 
-// @desc    Delete a recipe
+// ✅ Delete Recipe
 // @route   DELETE /api/recipes/:id
 // @access  Private
 export const deleteRecipe = asyncHandler(async (req, res) => {
   const recipe = await Recipe.findById(req.params.id);
   if (!recipe) {
-    res.status(404);
-    throw new Error("Recipe not found");
+    return res.status(404).json({ message: "Recipe not found" });
   }
 
   await recipe.deleteOne();
-  res.json({ message: "Recipe removed" });
+  res.json({ message: "Recipe removed successfully" });
 });
 
-// @desc    Add rating
+// ✅ Add Rating
 // @route   POST /api/recipes/:id/ratings
 // @access  Private
 export const addRating = asyncHandler(async (req, res) => {
@@ -91,16 +108,16 @@ export const addRating = asyncHandler(async (req, res) => {
   const recipe = await Recipe.findById(req.params.id);
 
   if (!recipe) {
-    res.status(404);
-    throw new Error("Recipe not found");
+    return res.status(404).json({ message: "Recipe not found" });
   }
 
   recipe.ratings.push({ user: req.user._id, rating });
   await recipe.save();
-  res.json(recipe);
+
+  res.json({ message: "Rating added successfully", recipe });
 });
 
-// @desc    Add comment
+// ✅ Add Comment
 // @route   POST /api/recipes/:id/comments
 // @access  Private
 export const addComment = asyncHandler(async (req, res) => {
@@ -108,11 +125,11 @@ export const addComment = asyncHandler(async (req, res) => {
   const recipe = await Recipe.findById(req.params.id);
 
   if (!recipe) {
-    res.status(404);
-    throw new Error("Recipe not found");
+    return res.status(404).json({ message: "Recipe not found" });
   }
 
   recipe.comments.push({ user: req.user._id, text });
   await recipe.save();
-  res.json(recipe);
+
+  res.json({ message: "Comment added successfully", recipe });
 });
