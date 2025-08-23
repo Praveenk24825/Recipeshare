@@ -1,6 +1,14 @@
 import Recipe from "../models/Recipe.js";
 
 // Create Recipe with image + video upload
+const parseJSON = (data) => {
+  try {
+    return data ? JSON.parse(data) : [];
+  } catch (err) {
+    return []; // fallback to empty array if parsing fails
+  }
+};
+
 export const createRecipe = async (req, res) => {
   try {
     const {
@@ -12,15 +20,14 @@ export const createRecipe = async (req, res) => {
       servings,
     } = req.body;
 
-    // ✅ multer stores files in req.files
     const imageUrl = req.files?.image ? `/uploads/${req.files.image[0].filename}` : null;
     const videoUrl = req.files?.video ? `/uploads/${req.files.video[0].filename}` : null;
 
     const recipe = new Recipe({
       title,
       description,
-      ingredients: JSON.parse(ingredients), // ensure array
-      steps: JSON.parse(steps),             // ensure array
+      ingredients: parseJSON(ingredients),
+      steps: parseJSON(steps),
       cookingTime,
       servings,
       imageUrl,
@@ -31,7 +38,8 @@ export const createRecipe = async (req, res) => {
     await recipe.save();
     res.status(201).json(recipe);
   } catch (error) {
-    res.status(400).json({ message: error.message });
+    console.error("Add recipe error:", error); // log full error
+    res.status(500).json({ message: "Server error", error: error.message });
   }
 };
 
