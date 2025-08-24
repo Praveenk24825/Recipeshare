@@ -1,6 +1,5 @@
 import Recipe from "../models/Recipe.js";
 
-// ✅ Create Recipe
 export const createRecipe = async (req, res) => {
   try {
     const { title, description, ingredients, steps, cookingTime, servings } = req.body;
@@ -11,8 +10,8 @@ export const createRecipe = async (req, res) => {
     const newRecipe = new Recipe({
       title,
       description,
-      ingredients: ingredients ? JSON.parse(ingredients) : [],
-      steps: steps ? JSON.parse(steps) : [],
+      ingredients: typeof ingredients === "string" ? JSON.parse(ingredients) : ingredients,
+      steps: typeof steps === "string" ? JSON.parse(steps) : steps,
       cookingTime,
       servings,
       createdBy: req.user._id,
@@ -22,9 +21,10 @@ export const createRecipe = async (req, res) => {
 
     const savedRecipe = await newRecipe.save();
     res.status(201).json(savedRecipe);
+
   } catch (err) {
     console.error("Create Recipe Error:", err);
-    res.status(500).json({ message: err.message });
+    res.status(500).json({ message: "Server error", error: err.message });
   }
 };
 
