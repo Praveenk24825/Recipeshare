@@ -4,14 +4,15 @@ export const createRecipe = async (req, res) => {
   try {
     const { title, description, ingredients, steps, cookingTime, servings } = req.body;
 
-    if (!title || !description)
-      return res.status(400).json({ message: "Title and description required" });
+    if (!title || !description || !ingredients || !steps) {
+      return res.status(400).json({ message: "Title, description, ingredients and steps are required" });
+    }
 
     const newRecipe = new Recipe({
       title,
       description,
-      ingredients: typeof ingredients === "string" ? JSON.parse(ingredients) : ingredients,
-      steps: typeof steps === "string" ? JSON.parse(steps) : steps,
+      ingredients: JSON.parse(ingredients), // convert string to array
+      steps: JSON.parse(steps),             // convert string to array
       cookingTime,
       servings,
       createdBy: req.user._id,
@@ -21,12 +22,12 @@ export const createRecipe = async (req, res) => {
 
     const savedRecipe = await newRecipe.save();
     res.status(201).json(savedRecipe);
-
   } catch (err) {
     console.error("Create Recipe Error:", err);
     res.status(500).json({ message: "Server error", error: err.message });
   }
 };
+
 
 // ✅ Get all recipes created by logged-in user
 export const getRecipes = async (req, res) => {
