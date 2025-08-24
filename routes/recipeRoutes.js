@@ -1,30 +1,36 @@
 import express from "express";
-import { createRecipe, getRecipes, getRecipeById, updateRecipe, deleteRecipe, addComment, addRating } from "../controllers/recipeController.js";
+import {
+  createRecipe,
+  getRecipes,
+  getRecipeById,
+  updateRecipe,
+  deleteRecipe,
+  addComment,
+  addRating,
+} from "../controllers/recipeController.js";
 import { protect } from "../middleware/authMiddleware.js";
-import upload from "../middleware/uploadMiddleware.js";
 
 const router = express.Router();
 
-// Upload image + video
-router.post(
-  "/",
-  protect,
-  upload.fields([
-    { name: "image", maxCount: 1 },
-    { name: "video", maxCount: 1 },
-  ]),
-  createRecipe
-);
+// ✅ Create recipe via raw JSON (no form-data)
+router.post("/", protect, createRecipe);
 
+// Get all recipes
 router.get("/", getRecipes);
+
+// Get single recipe
 router.get("/:id", getRecipeById);
-router.put("/:id", protect, upload.fields([
-  { name: "image", maxCount: 1 },
-  { name: "video", maxCount: 1 },
-]), updateRecipe);
+
+// Update recipe (JSON)
+router.put("/:id", protect, updateRecipe);
+
+// Delete recipe
 router.delete("/:id", protect, deleteRecipe);
 
+// Add comment
 router.post("/:id/comment", protect, addComment);
+
+// Add rating
 router.post("/:id/rating", protect, addRating);
 
 export default router;
