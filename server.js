@@ -21,12 +21,10 @@ const app = express();
 app.use(express.json());
 
 // CORS
-app.use(
-  cors({
+app.use(cors({
     origin: ["http://localhost:5173", "https://your-frontend.netlify.app"],
-    credentials: true,
-  })
-);
+    credentials: true
+}));
 
 // Serve uploads
 const __filename = fileURLToPath(import.meta.url);

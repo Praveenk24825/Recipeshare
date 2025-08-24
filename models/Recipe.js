@@ -1,27 +1,27 @@
 import mongoose from "mongoose";
 
-const commentSchema = new mongoose.Schema({
+const commentSchema = mongoose.Schema({
   user: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
   comment: { type: String, required: true },
 }, { timestamps: true });
 
-const ratingSchema = new mongoose.Schema({
+const ratingSchema = mongoose.Schema({
   user: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
-  rating: { type: Number, required: true, min: 1, max: 5 },
+  rating: { type: Number, required: true },
 }, { timestamps: true });
 
-const recipeSchema = new mongoose.Schema({
+const recipeSchema = mongoose.Schema({
   title: { type: String, required: true },
   description: { type: String, required: true },
-  ingredients: { type: [String], required: true }, // array of strings
-  steps: { type: [String], required: true },       // array of strings
-  cookingTime: { type: Number, required: true },
-  servings: { type: Number, required: true },
-  createdBy: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
-  imageUrl: { type: String, default: "" },
-  videoUrl: { type: String, default: "" },
-  ratings: [ratingSchema],
+  ingredients: [{ type: String }],
+  steps: [{ type: String }],
+  cookingTime: { type: String },
+  servings: { type: String },
+  photo: { type: String },
+  video: { type: String },
+  createdBy: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
   comments: [commentSchema],
+  ratings: [ratingSchema]
 }, { timestamps: true });
 
 export default mongoose.model("Recipe", recipeSchema);

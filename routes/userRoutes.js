@@ -1,18 +1,13 @@
 import express from "express";
-import { getProfile, updateProfile, followUser, toggleFavorite, getFavorites } from "../controllers/userController.js";
+import { getUserProfile, updateUserProfile } from "../controllers/userController.js";
 import { protect } from "../middleware/authMiddleware.js";
 
 const router = express.Router();
 
-// Profile
-router.get("/profile", protect, getProfile);
-router.put("/profile", protect, updateProfile);
+// Get user profile
+router.get("/profile", protect, getUserProfile);
 
-// Follow / Unfollow
-router.put("/follow/:id", protect, followUser);
-
-// Favorites
-router.post("/favorite/:recipeId", protect, toggleFavorite);
-router.get("/favorites", protect, getFavorites);
+// Update user profile
+router.put("/profile", protect, updateUserProfile);
 
 export default router;

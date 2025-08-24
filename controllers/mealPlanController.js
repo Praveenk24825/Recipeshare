@@ -1,22 +1,76 @@
+import asyncHandler from "express-async-handler";
 import MealPlan from "../models/MealPlan.js";
 
-// Create meal plan
-export const createMealPlan = async (req, res) => {
-  const { title, description, recipes } = req.body;
-  const mealPlan = await MealPlan.create({ user: req.user._id, title, description, recipes });
-  res.status(201).json(mealPlan);
-};
-
-// Get user's meal plans
-export const getMealPlans = async (req, res) => {
-  const mealPlans = await MealPlan.find({ user: req.user._id }).populate('recipes.recipe', 'title ingredients');
+// @desc    Get all meal plans for logged-in user
+// @route   GET /api/mealplans
+// @access  Private
+export const getMealPlans = asyncHandler(async (req, res) => {
+  const mealPlans = await MealPlan.find({ user: req.user._id });
   res.json(mealPlans);
-};
+});
 
-// Delete meal plan
-export const deleteMealPlan = async (req, res) => {
+// @desc    Get single meal plan by ID
+// @route   GET /api/mealplans/:id
+// @access  Private
+export const getMealPlanById = asyncHandler(async (req, res) => {
   const mealPlan = await MealPlan.findById(req.params.id);
-  if (!mealPlan) return res.status(404).json({ message: "Meal plan not found" });
-  await mealPlan.remove();
-  res.json({ message: "Meal plan deleted" });
-};
+  if (mealPlan) {
+    res.json(mealPlan);
+  } else {
+    res.status(404);
+    throw new Error("Meal plan not found");
+  }
+});
+
+// @desc    Create a new meal plan
+// @route   POST /api/mealplans
+// @access  Private
+export const createMealPlan = asyncHandler(async (req, res) => {
+  const { title, recipes } = req.body;
+  if (!title || !recipes) {
+    res.status(400);
+    throw new Error("Title and recipes are required");
+  }
+
+  const mealPlan = new MealPlan({
+    user: req.user._id,
+    title,
+    recipes, // array of recipe IDs
+  });
+
+  const createdMealPlan = await mealPlan.save();
+  res.status(201).json(createdMealPlan);
+});
+
+// @desc    Update a meal plan
+// @route   PUT /api/mealplans/:id
+// @access  Private
+export const updateMealPlan = asyncHandler(async (req, res) => {
+  const mealPlan = await MealPlan.findById(req.params.id);
+
+  if (mealPlan) {
+    mealPlan.title = req.body.title || mealPlan.title;
+    mealPlan.recipes = req.body.recipes || mealPlan.recipes;
+
+    const updatedMealPlan = await mealPlan.save();
+    res.json(updatedMealPlan);
+  } else {
+    res.status(404);
+    throw new Error("Meal plan not found");
+  }
+});
+
+// @desc    Delete a meal plan
+// @route   DELETE /api/mealplans/:id
+// @access  Private
+export const deleteMealPlan = asyncHandler(async (req, res) => {
+  const mealPlan = await MealPlan.findById(req.params.id);
+
+  if (mealPlan) {
+    await mealPlan.remove();
+    res.json({ message: "Meal plan removed" });
+  } else {
+    res.status(404);
+    throw new Error("Meal plan not found");
+  }
+});

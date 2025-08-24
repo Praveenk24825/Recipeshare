@@ -1,15 +1,12 @@
 import mongoose from "mongoose";
+import User from "./User.js"; // Import User, don't redefine
 
 const mealPlanSchema = new mongoose.Schema({
-  user: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
   title: { type: String, required: true },
-  description: String,
-  recipes: [{
-    recipe: { type: mongoose.Schema.Types.ObjectId, ref: "Recipe" },
-    day: { type: String, enum: ["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday"] },
-    mealType: { type: String, enum: ["Breakfast","Lunch","Dinner","Snack"] },
-  }]
+  recipes: [{ type: mongoose.Schema.Types.ObjectId, ref: "Recipe" }],
+  createdBy: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
 }, { timestamps: true });
 
-const MealPlan = mongoose.model("MealPlan", mealPlanSchema);
+// Prevent overwriting the model
+const MealPlan = mongoose.models.MealPlan || mongoose.model("MealPlan", mealPlanSchema);
 export default MealPlan;
