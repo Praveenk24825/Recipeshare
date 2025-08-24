@@ -2,7 +2,7 @@ import mongoose from "mongoose";
 
 const commentSchema = new mongoose.Schema(
   {
-    user: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
+    user: { type: String, required: true }, // for now just store username
     comment: { type: String, required: true },
   },
   { timestamps: true }
@@ -10,7 +10,7 @@ const commentSchema = new mongoose.Schema(
 
 const ratingSchema = new mongoose.Schema(
   {
-    user: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
+    user: { type: String, required: true },
     rating: { type: Number, required: true, min: 1, max: 5 },
   },
   { timestamps: true }
@@ -22,11 +22,10 @@ const recipeSchema = new mongoose.Schema(
     description: { type: String, required: true },
     ingredients: [{ type: String }],
     steps: [{ type: String }],
-    cookingTime: { type: String },
-    servings: { type: String },
-    photo: { type: String }, // saved file path (/uploads/images/xxx.png)
-    video: { type: String }, // saved file path (/uploads/videos/xxx.mp4)
-    createdBy: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
+    cookingTime: { type: Number },
+    servings: { type: Number },
+    photo: { type: String }, // path to image
+    video: { type: String }, // path to video
     comments: [commentSchema],
     ratings: [ratingSchema],
   },
@@ -34,5 +33,4 @@ const recipeSchema = new mongoose.Schema(
 );
 
 const Recipe = mongoose.model("Recipe", recipeSchema);
-
 export default Recipe;
