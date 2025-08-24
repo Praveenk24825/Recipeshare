@@ -9,20 +9,25 @@ export const createRecipe = async (req, res) => {
       return res.status(400).json({ message: "Title and description required" });
     }
 
+    const photo = req.files?.photo ? `/uploads/${req.files.photo[0].filename}` : null;
+    const video = req.files?.video ? `/uploads/${req.files.video[0].filename}` : null;
+
     const newRecipe = new Recipe({
       title,
       description,
-      ingredients: ingredients ? ingredients.split(",") : [],
-      steps: steps ? steps.split(",") : [],
+      ingredients: ingredients?.split(","),
+      steps,
       cookingTime,
       servings,
-      imageUrl: req.file ? `/uploads/${req.file.filename}` : null
+      photo,
+      video,
     });
 
     await newRecipe.save();
     res.status(201).json(newRecipe);
-  } catch (err) {
-    res.status(500).json({ message: err.message });
+  } catch (error) {
+    console.error("Create recipe error:", error);
+    res.status(500).json({ message: "Server error" });
   }
 };
 
