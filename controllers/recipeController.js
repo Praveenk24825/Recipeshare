@@ -1,23 +1,23 @@
 import Recipe from "../models/Recipe.js";
 
+// Create Recipe
 export const createRecipe = async (req, res) => {
   try {
-    const { title, description, ingredients, steps, cookingTime, servings } = req.body;
+    const { title, description, ingredients, steps, cookingTime, servings, imageUrl, videoUrl } = req.body;
 
-    if (!title || !description || !ingredients || !steps) {
-      return res.status(400).json({ message: "Title, description, ingredients and steps are required" });
-    }
+    if (!title || !description)
+      return res.status(400).json({ message: "Title and description required" });
 
     const newRecipe = new Recipe({
       title,
       description,
-      ingredients: JSON.parse(ingredients), // convert string to array
-      steps: JSON.parse(steps),             // convert string to array
+      ingredients,  // array from JSON
+      steps,        // array from JSON
       cookingTime,
       servings,
       createdBy: req.user._id,
-      imageUrl: req.files?.image ? req.files.image[0].path : "",
-      videoUrl: req.files?.video ? req.files.video[0].path : "",
+      imageUrl: imageUrl || "",
+      videoUrl: videoUrl || "",
     });
 
     const savedRecipe = await newRecipe.save();

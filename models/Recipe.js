@@ -18,8 +18,8 @@ const recipeSchema = new mongoose.Schema({
   cookingTime: { type: Number, required: true },
   servings: { type: Number, required: true },
   createdBy: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
-  imageUrl: { type: String },
-  videoUrl: { type: String },
+  imageUrl: { type: String, default: "" },
+  videoUrl: { type: String, default: "" },
   ratings: [ratingSchema],
   comments: [commentSchema],
 }, { timestamps: true });
