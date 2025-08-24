@@ -8,7 +8,6 @@ import {
   addComment,
   addRating,
 } from "../controllers/recipeController.js";
-
 import { protect } from "../middleware/authMiddleware.js";
 import upload from "../middleware/uploadMiddleware.js";
 
@@ -25,10 +24,10 @@ router.post(
   createRecipe
 );
 
-// Get all recipes (for logged-in user)
+// Get all recipes
 router.get("/", protect, getRecipes);
 
-// Get single recipe by id
+// Get single recipe
 router.get("/:id", protect, getRecipeById);
 
 // Update recipe
@@ -37,8 +36,10 @@ router.put("/:id", protect, updateRecipe);
 // Delete recipe
 router.delete("/:id", protect, deleteRecipe);
 
-// Comments and ratings
+// Add comment
 router.post("/:id/comment", protect, addComment);
+
+// Add rating
 router.post("/:id/rating", protect, addRating);
 
 export default router;

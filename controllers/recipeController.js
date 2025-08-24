@@ -1,29 +1,32 @@
 import Recipe from "../models/Recipe.js";
 
-// Create recipe
 export const createRecipe = async (req, res) => {
   try {
     const { title, description, ingredients, steps, cookingTime, servings } = req.body;
 
-    const photo = req.files?.photo ? `/uploads/image/${req.files.photo[0].filename}` : null;
+    if (!title || !description) {
+      return res.status(400).json({ message: "Title and description required" });
+    }
+
+    const photo = req.files?.photo ? `/uploads/images/${req.files.photo[0].filename}` : null;
     const video = req.files?.video ? `/uploads/videos/${req.files.video[0].filename}` : null;
 
     const recipe = new Recipe({
       title,
       description,
-      ingredients: ingredients ? JSON.parse(ingredients) : [],
-      steps: steps ? JSON.parse(steps) : [],
+      ingredients,
+      steps,
       cookingTime,
       servings,
       photo,
       video,
-      createdBy: req.user._id,
     });
 
     await recipe.save();
     res.status(201).json(recipe);
-  } catch (error) {
-    res.status(500).json({ message: error.message });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Server error" });
   }
 };
 
