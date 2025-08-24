@@ -1,14 +1,9 @@
-// ✅ Create Recipe with file upload support
+// controllers/recipeController.js
+import Recipe from "../models/Recipe.js";
+
 export const createRecipe = async (req, res) => {
   try {
-    const {
-      title,
-      description,
-      ingredients,
-      steps,
-      cookingTime,
-      servings,
-    } = req.body;
+    const { title, description, ingredients, steps, cookingTime, servings } = req.body;
 
     if (!title || !description) {
       return res.status(400).json({ message: "Title and description required" });
@@ -17,20 +12,17 @@ export const createRecipe = async (req, res) => {
     const newRecipe = new Recipe({
       title,
       description,
-      ingredients: ingredients ? JSON.parse(ingredients) : [], // Ensure array
-      steps: steps ? JSON.parse(steps) : [],                   // Ensure array
+      ingredients: ingredients ? ingredients.split(",") : [],
+      steps: steps ? steps.split(",") : [],
       cookingTime,
       servings,
-      createdBy: req.user._id,
-      imageUrl: req.files?.image ? req.files.image[0].path : "",
-      videoUrl: req.files?.video ? req.files.video[0].path : "",
+      imageUrl: req.file ? `/uploads/${req.file.filename}` : null
     });
 
-    const savedRecipe = await newRecipe.save();
-    res.status(201).json(savedRecipe);
+    await newRecipe.save();
+    res.status(201).json(newRecipe);
   } catch (err) {
-    console.error("Create Recipe Error:", err);
-    res.status(500).json({ message: "Server error", error: err.message });
+    res.status(500).json({ message: err.message });
   }
 };
 
