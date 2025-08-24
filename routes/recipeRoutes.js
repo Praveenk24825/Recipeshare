@@ -28,7 +28,7 @@ router.put(
 );
 router.delete("/:id", deleteRecipe);
 
-router.post("/:id/comment", addComment);
-router.post("/:id/rating", addRating);
+router.put("/:id/comment", addComment);
+router.put("/:id/rating", addRating);
 
 export default router;
