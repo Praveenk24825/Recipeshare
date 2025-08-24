@@ -1,39 +1,43 @@
 import Recipe from "../models/Recipe.js";
 
+// Create Recipe
 export const createRecipe = async (req, res) => {
   try {
     const { title, description, ingredients, steps, cookingTime, servings } = req.body;
 
     if (!title || !description) {
-      return res.status(400).json({ message: "Title and description required" });
+      return res.status(400).json({ message: "Title and description are required" });
     }
 
+    // Uploaded file paths
     const photo = req.files?.photo ? `/uploads/images/${req.files.photo[0].filename}` : null;
     const video = req.files?.video ? `/uploads/videos/${req.files.video[0].filename}` : null;
 
-    const recipe = new Recipe({
+    const newRecipe = new Recipe({
       title,
       description,
-      ingredients,
-      steps,
+      ingredients: ingredients ? ingredients.split(",") : [],
+      steps: steps ? steps.split(",") : [],
       cookingTime,
       servings,
       photo,
       video,
+      user: req.user._id, // logged in user
     });
 
-    await recipe.save();
-    res.status(201).json(recipe);
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ message: "Server error" });
+    const savedRecipe = await newRecipe.save();
+    res.status(201).json(savedRecipe);
+  } catch (error) {
+    console.error("Error creating recipe:", error);
+    res.status(500).json({ message: "Server error while creating recipe" });
   }
 };
+
 
 // Get all recipes
 export const getRecipes = async (req, res) => {
   try {
-    const recipes = await Recipe.find().populate("createdBy", "name email");
+    const recipes = await Recipe.find().populate("user", "name email");
     res.json(recipes);
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -43,7 +47,7 @@ export const getRecipes = async (req, res) => {
 // Get single recipe
 export const getRecipeById = async (req, res) => {
   try {
-    const recipe = await Recipe.findById(req.params.id).populate("createdBy", "name email");
+    const recipe = await Recipe.findById(req.params.id).populate("user", "name email");
     if (!recipe) return res.status(404).json({ message: "Recipe not found" });
     res.json(recipe);
   } catch (error) {
@@ -54,18 +58,23 @@ export const getRecipeById = async (req, res) => {
 // Update recipe
 export const updateRecipe = async (req, res) => {
   try {
-    const updates = {};
-    if (req.body.title) updates.title = req.body.title;
-    if (req.body.description) updates.description = req.body.description;
-    if (req.body.cookingTime) updates.cookingTime = req.body.cookingTime;
-    if (req.body.servings) updates.servings = req.body.servings;
-    if (req.body.ingredients) updates.ingredients = JSON.parse(req.body.ingredients);
-    if (req.body.steps) updates.steps = JSON.parse(req.body.steps);
-    if (req.files?.photo) updates.photo = `/uploads/image/${req.files.photo[0].filename}`;
-    if (req.files?.video) updates.video = `/uploads/videos/${req.files.video[0].filename}`;
+    const recipe = await Recipe.findById(req.params.id);
+    if (!recipe) return res.status(404).json({ message: "Recipe not found" });
 
-    const recipe = await Recipe.findByIdAndUpdate(req.params.id, updates, { new: true });
-    res.json(recipe);
+    recipe.title = req.body.title || recipe.title;
+    recipe.description = req.body.description || recipe.description;
+    recipe.ingredients = req.body.ingredients
+      ? req.body.ingredients.split(",")
+      : recipe.ingredients;
+    recipe.steps = req.body.steps ? req.body.steps.split(",") : recipe.steps;
+    recipe.cookingTime = req.body.cookingTime || recipe.cookingTime;
+    recipe.servings = req.body.servings || recipe.servings;
+
+    if (req.files?.photo) recipe.photo = `/uploads/images/${req.files.photo[0].filename}`;
+    if (req.files?.video) recipe.video = `/uploads/videos/${req.files.video[0].filename}`;
+
+    const updatedRecipe = await recipe.save();
+    res.json(updatedRecipe);
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
@@ -74,9 +83,11 @@ export const updateRecipe = async (req, res) => {
 // Delete recipe
 export const deleteRecipe = async (req, res) => {
   try {
-    const recipe = await Recipe.findByIdAndDelete(req.params.id);
+    const recipe = await Recipe.findById(req.params.id);
     if (!recipe) return res.status(404).json({ message: "Recipe not found" });
-    res.json({ message: "Recipe deleted" });
+
+    await recipe.deleteOne();
+    res.json({ message: "Recipe removed" });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
@@ -86,9 +97,16 @@ export const deleteRecipe = async (req, res) => {
 export const addComment = async (req, res) => {
   try {
     const recipe = await Recipe.findById(req.params.id);
-    recipe.comments.push({ user: req.user._id, comment: req.body.comment });
+    if (!recipe) return res.status(404).json({ message: "Recipe not found" });
+
+    const comment = {
+      user: req.user._id,
+      comment: req.body.comment,
+    };
+
+    recipe.comments.push(comment);
     await recipe.save();
-    res.json(recipe);
+    res.status(201).json(recipe.comments);
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
@@ -98,11 +116,16 @@ export const addComment = async (req, res) => {
 export const addRating = async (req, res) => {
   try {
     const recipe = await Recipe.findById(req.params.id);
-    const existing = recipe.ratings.find(r => r.user.toString() === req.user._id.toString());
-    if (existing) existing.rating = req.body.rating;
-    else recipe.ratings.push({ user: req.user._id, rating: req.body.rating });
+    if (!recipe) return res.status(404).json({ message: "Recipe not found" });
+
+    const rating = {
+      user: req.user._id,
+      rating: req.body.rating,
+    };
+
+    recipe.ratings.push(rating);
     await recipe.save();
-    res.json(recipe);
+    res.status(201).json(recipe.ratings);
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
