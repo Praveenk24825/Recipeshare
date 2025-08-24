@@ -1,23 +1,29 @@
-import Recipe from "../models/Recipe.js";
-
-// Create Recipe
+// ✅ Create Recipe with file upload support
 export const createRecipe = async (req, res) => {
   try {
-    const { title, description, ingredients, steps, cookingTime, servings, imageUrl, videoUrl } = req.body;
+    const {
+      title,
+      description,
+      ingredients,
+      steps,
+      cookingTime,
+      servings,
+    } = req.body;
 
-    if (!title || !description)
+    if (!title || !description) {
       return res.status(400).json({ message: "Title and description required" });
+    }
 
     const newRecipe = new Recipe({
       title,
       description,
-      ingredients,  // array from JSON
-      steps,        // array from JSON
+      ingredients: ingredients ? JSON.parse(ingredients) : [], // Ensure array
+      steps: steps ? JSON.parse(steps) : [],                   // Ensure array
       cookingTime,
       servings,
       createdBy: req.user._id,
-      imageUrl: imageUrl || "",
-      videoUrl: videoUrl || "",
+      imageUrl: req.files?.image ? req.files.image[0].path : "",
+      videoUrl: req.files?.video ? req.files.video[0].path : "",
     });
 
     const savedRecipe = await newRecipe.save();
@@ -27,7 +33,6 @@ export const createRecipe = async (req, res) => {
     res.status(500).json({ message: "Server error", error: err.message });
   }
 };
-
 
 // ✅ Get all recipes created by logged-in user
 export const getRecipes = async (req, res) => {
