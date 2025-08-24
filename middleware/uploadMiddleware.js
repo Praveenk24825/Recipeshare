@@ -1,14 +1,22 @@
-// middleware/upload.js
+// middleware/uploadMiddleware.js
 import multer from "multer";
+import path from "path";
 
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
-    cb(null, "uploads/");
+    if (file.fieldname === "photo") {
+      cb(null, "uploads/image"); // images go here
+    } else if (file.fieldname === "video") {
+      cb(null, "uploads/videos"); // videos go here
+    } else {
+      cb(null, "uploads"); // fallback
+    }
   },
   filename: (req, file, cb) => {
-    cb(null, Date.now() + "-" + file.originalname);
-  }
+    cb(null, Date.now() + path.extname(file.originalname));
+  },
 });
 
 const upload = multer({ storage });
+
 export default upload;
