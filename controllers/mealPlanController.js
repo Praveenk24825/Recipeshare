@@ -65,10 +65,10 @@ export const updateMealPlan = asyncHandler(async (req, res) => {
 // @route   DELETE /api/mealplans/:id
 // @access  Private
 export const deleteMealPlan = asyncHandler(async (req, res) => {
-  const mealPlan = await MealPlan.findOne({ _id: req.params.id, createdBy: req.user._id });
+  const mealPlan = await MealPlan.findById(req.params.id);
 
   if (mealPlan) {
-    await mealPlan.remove();
+    await mealPlan.deleteOne(); 
     res.json({ message: "Meal plan removed" });
   } else {
     res.status(404);
