@@ -5,6 +5,11 @@ const userSchema = new mongoose.Schema({
   name: { type: String, required: true },
   email: { type: String, required: true, unique: true },
   password: { type: String, required: true },
+
+  // New fields for follow/unfollow
+  followers: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }], // users who follow this user
+  following: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }], // users this user follows
+
 }, { timestamps: true });
 
 // Encrypt password before saving
