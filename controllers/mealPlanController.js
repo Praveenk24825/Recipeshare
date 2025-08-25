@@ -5,15 +5,15 @@ import MealPlan from "../models/MealPlan.js";
 // @route   GET /api/mealplans
 // @access  Private
 export const getMealPlans = asyncHandler(async (req, res) => {
-  const mealPlans = await MealPlan.find({ user: req.user._id });
+  const mealPlans = await MealPlan.find({ createdBy: req.user._id }).populate("recipes");
   res.json(mealPlans);
 });
 
-// @desc    Get single meal plan by ID
+// @desc    Get single meal plan by ID (only if it belongs to logged-in user)
 // @route   GET /api/mealplans/:id
 // @access  Private
 export const getMealPlanById = asyncHandler(async (req, res) => {
-  const mealPlan = await MealPlan.findById(req.params.id);
+  const mealPlan = await MealPlan.findOne({ _id: req.params.id, createdBy: req.user._id }).populate("recipes");
   if (mealPlan) {
     res.json(mealPlan);
   } else {
@@ -27,13 +27,14 @@ export const getMealPlanById = asyncHandler(async (req, res) => {
 // @access  Private
 export const createMealPlan = asyncHandler(async (req, res) => {
   const { title, recipes } = req.body;
+
   if (!title || !recipes) {
     res.status(400);
     throw new Error("Title and recipes are required");
   }
 
   const mealPlan = new MealPlan({
-    user: req.user._id,
+    createdBy: req.user._id, // use correct field
     title,
     recipes, // array of recipe IDs
   });
@@ -46,7 +47,7 @@ export const createMealPlan = asyncHandler(async (req, res) => {
 // @route   PUT /api/mealplans/:id
 // @access  Private
 export const updateMealPlan = asyncHandler(async (req, res) => {
-  const mealPlan = await MealPlan.findById(req.params.id);
+  const mealPlan = await MealPlan.findOne({ _id: req.params.id, createdBy: req.user._id });
 
   if (mealPlan) {
     mealPlan.title = req.body.title || mealPlan.title;
@@ -64,7 +65,7 @@ export const updateMealPlan = asyncHandler(async (req, res) => {
 // @route   DELETE /api/mealplans/:id
 // @access  Private
 export const deleteMealPlan = asyncHandler(async (req, res) => {
-  const mealPlan = await MealPlan.findById(req.params.id);
+  const mealPlan = await MealPlan.findOne({ _id: req.params.id, createdBy: req.user._id });
 
   if (mealPlan) {
     await mealPlan.remove();
