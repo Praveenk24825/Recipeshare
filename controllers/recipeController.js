@@ -1,5 +1,5 @@
 import Recipe from "../models/Recipe.js";
-
+import User from "../models/User.js";
 // Create recipe
 export const createRecipe = async (req, res) => {
   try {
