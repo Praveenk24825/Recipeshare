@@ -4,6 +4,7 @@ import {
     updateUserProfile,
     followUser,
     unfollowUser,
+    getAllUsers,
 } from "../controllers/userController.js";
 
 
@@ -22,5 +23,7 @@ router.put("/:id/follow", protect, followUser);
 
 // Unfollow a user
 router.put("/:id/unfollow", protect, unfollowUser);
+
+router.get("/", protect, getAllUsers); // GET /api/users
 
 export default router;
