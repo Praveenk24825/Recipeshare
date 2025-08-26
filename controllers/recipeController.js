@@ -30,16 +30,22 @@ export const createRecipe = async (req, res) => {
   }
 };
 
-// Get all recipes
+// Get all recipes (with optional search)
 export const getRecipes = async (req, res) => {
   try {
-    const recipes = await Recipe.find().sort({ createdAt: -1 });
+    const { search } = req.query;
+
+    let filter = {};
+    if (search) {
+      filter.title = { $regex: search, $options: "i" }; // case-insensitive search
+    }
+
+    const recipes = await Recipe.find(filter).sort({ createdAt: -1 });
     res.json(recipes);
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
 };
-
 // Get single recipe
 export const getRecipeById = async (req, res) => {
   try {
