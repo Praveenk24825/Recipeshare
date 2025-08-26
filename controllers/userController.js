@@ -101,8 +101,12 @@ export const unfollowUser = asyncHandler(async (req, res) => {
     currentUser: await User.findById(currentUser._id).select("-password"),
   });
 });
-// Get all users
-export const getAllUsers = asyncHandler(async (req, res) => {
-  const users = await User.find().select("-password");
-  res.json(users);
-});  
+// Controller: getAllUsers
+export const getAllUsers = async (req, res) => {
+  try {
+    const users = await User.find().select("-password");
+    res.json(users); // ✅ return array only
+  } catch (err) {
+    res.status(500).json({ message: "Server error" });
+  }
+};
