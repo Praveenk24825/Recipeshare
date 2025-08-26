@@ -95,13 +95,21 @@ export const addComment = async (req, res) => {
     const recipe = await Recipe.findById(req.params.id);
     if (!recipe) return res.status(404).json({ message: "Recipe not found" });
 
-    const { user, comment } = req.body;
-    recipe.comments.push({ user, comment });
+    const { text } = req.body;
+    if (!text) return res.status(400).json({ message: "Comment text required" });
+
+    // Use authenticated user
+    recipe.comments.push({
+      userId: req.user._id,
+      userName: req.user.name,
+      text,
+    });
 
     await recipe.save();
-    res.json(recipe);
+    res.json({ comments: recipe.comments });
   } catch (err) {
-    res.status(500).json({ message: err.message });
+    console.error(err);
+    res.status(500).json({ message: "Server error" });
   }
 };
 
@@ -111,14 +119,27 @@ export const addRating = async (req, res) => {
     const recipe = await Recipe.findById(req.params.id);
     if (!recipe) return res.status(404).json({ message: "Recipe not found" });
 
-    const { user, rating } = req.body;
-    recipe.ratings.push({ user, rating });
+    const { rating } = req.body;
+    if (!rating || rating < 1 || rating > 5)
+      return res.status(400).json({ message: "Rating must be 1-5" });
+
+    // Remove previous rating by this user
+    recipe.ratings = recipe.ratings.filter(r => !r.userId.equals(req.user._id));
+
+    recipe.ratings.push({
+      userId: req.user._id,
+      userName: req.user.name,
+      rating,
+    });
+
+    // Compute average rating
+    recipe.rating =
+      recipe.ratings.reduce((acc, r) => acc + r.rating, 0) / recipe.ratings.length;
 
     await recipe.save();
-    res.json(recipe);
+    res.json({ rating: recipe.rating, ratings: recipe.ratings });
   } catch (err) {
-    res.status(500).json({ message: err.message });
+    console.error(err);
+    res.status(500).json({ message: "Server error" });
   }
-
-  
 };
