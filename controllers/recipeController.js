@@ -95,22 +95,28 @@ export const addComment = async (req, res) => {
     const recipe = await Recipe.findById(req.params.id);
     if (!recipe) return res.status(404).json({ message: "Recipe not found" });
 
-    const { text } = req.body;
-    if (!text) return res.status(400).json({ message: "Comment text required" });
+    if (!req.user || !req.user.name) {
+      return res.status(401).json({ message: "Unauthorized" });
+    }
 
+    const { text } = req.body;
+    if (!text || !text.trim()) {
+      return res.status(400).json({ message: "Comment text required" });
+    }
+
+    // Add comment
     recipe.comments.push({
-      user: req.user.name,   // ✅ matches schema
-      comment: text,         // ✅ fix field name
+      user: req.user.name,
+      comment: text.trim(),
     });
 
     await recipe.save();
     res.json({ comments: recipe.comments });
   } catch (err) {
-    console.error(err);
+    console.error("Add comment error:", err);
     res.status(500).json({ message: "Server error" });
   }
 };
-
 
 // Add rating
 export const addRating = async (req, res) => {
@@ -118,30 +124,31 @@ export const addRating = async (req, res) => {
     const recipe = await Recipe.findById(req.params.id);
     if (!recipe) return res.status(404).json({ message: "Recipe not found" });
 
-    const { rating } = req.body;
-    if (!rating || rating < 1 || rating > 5) {
+    if (!req.user || !req.user.name) {
+      return res.status(401).json({ message: "Unauthorized" });
+    }
+
+    const ratingValue = Number(req.body.rating);
+    if (!ratingValue || ratingValue < 1 || ratingValue > 5) {
       return res.status(400).json({ message: "Rating must be 1-5" });
     }
 
-    // Remove old rating by this user (using username)
+    // Remove old rating by this user
     recipe.ratings = recipe.ratings.filter(r => r.user !== req.user.name);
 
+    // Add new rating
     recipe.ratings.push({
-      user: req.user.name,  // ✅ match schema
-      rating,
+      user: req.user.name,
+      rating: ratingValue,
     });
 
-    // Average rating
-    const avg =
-      recipe.ratings.reduce((acc, r) => acc + r.rating, 0) /
-      recipe.ratings.length;
-
-    recipe.rating = avg; // optional field, only if you add it in schema
+    // Update average rating
+    recipe.rating = recipe.ratings.reduce((acc, r) => acc + r.rating, 0) / recipe.ratings.length;
 
     await recipe.save();
-    res.json({ rating: avg, ratings: recipe.ratings });
+    res.json({ rating: recipe.rating, ratings: recipe.ratings });
   } catch (err) {
-    console.error(err);
+    console.error("Add rating error:", err);
     res.status(500).json({ message: "Server error" });
   }
 };
