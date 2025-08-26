@@ -96,12 +96,11 @@ export const unfollowUser = asyncHandler(async (req, res) => {
   await currentUser.save();
 
   res.json({
-  message: `You have unfollowed ${userToFollow.name}`,
-  userToFollow: await User.findById(userToFollow._id).select("-password"),
-  currentUser: await User.findById(currentUser._id).select("-password"),
+    message: `You have unfollowed ${userToUnfollow.name}`,
+    userToUnfollow: await User.findById(userToUnfollow._id).select("-password"),
+    currentUser: await User.findById(currentUser._id).select("-password"),
+  });
 });
-});
-
 // Get all users
 export const getAllUsers = asyncHandler(async (req, res) => {
   const users = await User.find().select("-password");
