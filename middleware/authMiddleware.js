@@ -25,6 +25,8 @@ export const protect = asyncHandler(async (req, res, next) => {
 */
 import jwt from "jsonwebtoken";
 import asyncHandler from "express-async-handler";
+import User from "../models/User.js"; // ✅ Make sure this import exists
+
 export const protect = asyncHandler(async (req, res, next) => {
   let token;
 
@@ -54,7 +56,7 @@ export const protect = asyncHandler(async (req, res, next) => {
 
       next();
     } catch (error) {
-      console.error(error);
+      console.error("Token verification failed:", error.message);
       res.status(401);
       throw new Error("Not authorized, token failed");
     }
