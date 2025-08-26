@@ -65,7 +65,12 @@ export const followUser = asyncHandler(async (req, res) => {
   await userToFollow.save();
   await currentUser.save();
 
-  res.json({ message: `You are now following ${userToFollow.name}` });
+  res.json({
+  message: `You are now following ${userToFollow.name}`,
+  userToFollow: await User.findById(userToFollow._id).select("-password"),
+  currentUser: await User.findById(currentUser._id).select("-password"),
+});
+
 });
 
 // Unfollow a user
@@ -90,7 +95,11 @@ export const unfollowUser = asyncHandler(async (req, res) => {
   await userToUnfollow.save();
   await currentUser.save();
 
-  res.json({ message: `You have unfollowed ${userToUnfollow.name}` });
+  res.json({
+  message: `You have unfollowed ${userToFollow.name}`,
+  userToFollow: await User.findById(userToFollow._id).select("-password"),
+  currentUser: await User.findById(currentUser._id).select("-password"),
+});
 });
 
 // Get all users
