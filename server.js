@@ -65,7 +65,8 @@ const app = express();
 
 // Allowed frontend origins
 const allowedOrigins = [
-  "http://localhost:5173",                 // local dev
+  "http://localhost:5173",
+  "http://localhost:5175",                 // local dev
   "https://your-frontend-domain.com",     // replace with your deployed frontend
 ];
 
