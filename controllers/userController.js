@@ -39,62 +39,52 @@ export const updateUserProfile = asyncHandler(async (req, res) => {
   }
 });  
 
-// @desc    Follow a user
-// @route   PUT /api/users/:id/follow
-// @access  Private
+// Follow a user
 export const followUser = asyncHandler(async (req, res) => {
   const userToFollow = await User.findById(req.params.id);
   const currentUser = await User.findById(req.user._id);
 
   if (!userToFollow) {
-    res.status(404);
-    throw new Error("User not found");
+    return res.status(404).json({ message: "User not found" });
   }
-
   if (userToFollow._id.equals(currentUser._id)) {
-    res.status(400);
-    throw new Error("You cannot follow yourself");
+    return res.status(400).json({ message: "You cannot follow yourself" });
   }
 
-  if (!userToFollow.followers) userToFollow.followers = [];
-  if (!currentUser.following) currentUser.following = [];
+  const alreadyFollowing = userToFollow.followers.some((f) =>
+    f.equals(currentUser._id)
+  );
 
-  if (!userToFollow.followers.includes(currentUser._id)) {
-    userToFollow.followers.push(currentUser._id);
-    currentUser.following.push(userToFollow._id);
-
-    await userToFollow.save();
-    await currentUser.save();
-
-    res.json({ message: `You are now following ${userToFollow.name}` });
-  } else {
-    res.status(400);
-    throw new Error("Already following this user");
+  if (alreadyFollowing) {
+    return res.status(400).json({ message: "Already following this user" });
   }
+
+  userToFollow.followers.push(currentUser._id);
+  currentUser.following.push(userToFollow._id);
+
+  await userToFollow.save();
+  await currentUser.save();
+
+  res.json({ message: `You are now following ${userToFollow.name}` });
 });
 
-// @desc    Unfollow a user
-// @route   PUT /api/users/:id/unfollow
-// @access  Private
+// Unfollow a user
 export const unfollowUser = asyncHandler(async (req, res) => {
   const userToUnfollow = await User.findById(req.params.id);
   const currentUser = await User.findById(req.user._id);
 
   if (!userToUnfollow) {
-    res.status(404);
-    throw new Error("User not found");
+    return res.status(404).json({ message: "User not found" });
   }
-
   if (userToUnfollow._id.equals(currentUser._id)) {
-    res.status(400);
-    throw new Error("You cannot unfollow yourself");
+    return res.status(400).json({ message: "You cannot unfollow yourself" });
   }
 
-  userToUnfollow.followers = userToUnfollow.followers?.filter(
-    (id) => !id.equals(currentUser._id)
+  userToUnfollow.followers = userToUnfollow.followers.filter(
+    (f) => !f.equals(currentUser._id)
   );
-  currentUser.following = currentUser.following?.filter(
-    (id) => !id.equals(userToUnfollow._id)
+  currentUser.following = currentUser.following.filter(
+    (f) => !f.equals(userToUnfollow._id)
   );
 
   await userToUnfollow.save();
@@ -102,7 +92,6 @@ export const unfollowUser = asyncHandler(async (req, res) => {
 
   res.json({ message: `You have unfollowed ${userToUnfollow.name}` });
 });
-
 
 // Get all users
 export const getAllUsers = asyncHandler(async (req, res) => {
