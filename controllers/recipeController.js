@@ -98,11 +98,9 @@ export const addComment = async (req, res) => {
     const { text } = req.body;
     if (!text) return res.status(400).json({ message: "Comment text required" });
 
-    // Use authenticated user
     recipe.comments.push({
-      userId: req.user._id,
-      userName: req.user.name,
-      text,
+      user: req.user.name,   // ✅ matches schema
+      comment: text,         // ✅ fix field name
     });
 
     await recipe.save();
@@ -113,6 +111,7 @@ export const addComment = async (req, res) => {
   }
 };
 
+
 // Add rating
 export const addRating = async (req, res) => {
   try {
@@ -120,24 +119,77 @@ export const addRating = async (req, res) => {
     if (!recipe) return res.status(404).json({ message: "Recipe not found" });
 
     const { rating } = req.body;
-    if (!rating || rating < 1 || rating > 5)
+    if (!rating || rating < 1 || rating > 5) {
       return res.status(400).json({ message: "Rating must be 1-5" });
+    }
 
-    // Remove previous rating by this user
-    recipe.ratings = recipe.ratings.filter(r => !r.userId.equals(req.user._id));
+    // Remove old rating by this user (using username)
+    recipe.ratings = recipe.ratings.filter(r => r.user !== req.user.name);
 
     recipe.ratings.push({
-      userId: req.user._id,
-      userName: req.user.name,
+      user: req.user.name,  // ✅ match schema
       rating,
     });
 
-    // Compute average rating
-    recipe.rating =
-      recipe.ratings.reduce((acc, r) => acc + r.rating, 0) / recipe.ratings.length;
+    // Average rating
+    const avg =
+      recipe.ratings.reduce((acc, r) => acc + r.rating, 0) /
+      recipe.ratings.length;
+
+    recipe.rating = avg; // optional field, only if you add it in schema
 
     await recipe.save();
-    res.json({ rating: recipe.rating, ratings: recipe.ratings });
+    res.json({ rating: avg, ratings: recipe.ratings });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
+
+// Add favorite
+export const addFavorite = async (req, res) => {
+  try {
+    const user = await User.findById(req.user._id);
+    if (!user) return res.status(404).json({ message: "User not found" });
+
+    const { recipeId } = req.body;
+    if (!recipeId) return res.status(400).json({ message: "Recipe ID required" });
+
+    if (!user.favorites.includes(recipeId)) {
+      user.favorites.push(recipeId);
+      await user.save();
+    }
+
+    res.json({ favorites: user.favorites });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
+// Remove favorite
+export const removeFavorite = async (req, res) => {
+  try {
+    const user = await User.findById(req.user._id);
+    if (!user) return res.status(404).json({ message: "User not found" });
+
+    const { recipeId } = req.body;
+    user.favorites = user.favorites.filter(id => id.toString() !== recipeId);
+    await user.save();
+
+    res.json({ favorites: user.favorites });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
+// Get all favorite recipes
+export const getFavorites = async (req, res) => {
+  try {
+    const user = await User.findById(req.user._id).populate("favorites");
+    res.json(user.favorites);
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: "Server error" });

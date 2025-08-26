@@ -8,7 +8,12 @@ import {
   deleteRecipe,
   addComment,
   addRating,
+  addFavorite,
+  removeFavorite,
+  getFavorites,
 } from "../controllers/recipeController.js";
+import { protect } from "../middleware/authMiddleware.js";
+
 
 const router = express.Router();
 
@@ -30,5 +35,11 @@ router.delete("/:id", deleteRecipe);
 
 router.put("/:id/comment", addComment);
 router.put("/:id/rating", addRating);
+
+
+router.post("/favorites", protect, addFavorite);
+router.delete("/favorites", protect, removeFavorite);
+router.get("/favorites", protect, getFavorites);
+
 
 export default router;
