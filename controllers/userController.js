@@ -108,4 +108,4 @@ export const unfollowUser = asyncHandler(async (req, res) => {
 export const getAllUsers = asyncHandler(async (req, res) => {
   const users = await User.find().select("-password");
   res.json(users);
-});
+});  
