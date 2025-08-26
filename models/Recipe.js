@@ -28,6 +28,7 @@ const recipeSchema = new mongoose.Schema(
     video: { type: String }, // path to video
     comments: [commentSchema],
     ratings: [ratingSchema],
+    rating: { type: Number, default: 0 }, // optional average rating
   },
   { timestamps: true }
 );
