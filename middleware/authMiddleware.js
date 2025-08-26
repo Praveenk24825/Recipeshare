@@ -23,11 +23,8 @@ export const protect = asyncHandler(async (req, res, next) => {
   }
 });
 */
-
 import jwt from "jsonwebtoken";
 import asyncHandler from "express-async-handler";
-import User from "../models/User.js";
-
 export const protect = asyncHandler(async (req, res, next) => {
   let token;
 
@@ -46,11 +43,13 @@ export const protect = asyncHandler(async (req, res, next) => {
         throw new Error("Not authorized, user not found");
       }
 
-      // Attach only what you need
+      // Attach full user info for backend usage
       req.user = {
-        id: user._id,
+        _id: user._id,
         name: user.name,
         email: user.email,
+        following: user.following || [],
+        followers: user.followers || [],
       };
 
       next();
