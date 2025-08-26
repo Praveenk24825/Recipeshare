@@ -1,4 +1,4 @@
-/*import express from "express";
+import express from "express";
 import mongoose from "mongoose";
 import dotenv from "dotenv";
 import cors from "cors";
@@ -45,7 +45,7 @@ mongoose
     app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
   })
   .catch((err) => console.error("DB connection error:", err));
-*/
+/*
 import express from "express";
 import mongoose from "mongoose";
 import dotenv from "dotenv";
@@ -113,3 +113,4 @@ mongoose
     app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
   })
   .catch((err) => console.error("DB connection error:", err));
+*/
