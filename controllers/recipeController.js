@@ -9,8 +9,14 @@ export const createRecipe = async (req, res) => {
       return res.status(400).json({ message: "Title and description required" });
     }
 
-    const photo = req.files?.photo ? `/uploads/images/${req.files.photo[0].filename}` : null;
-    const video = req.files?.video ? `/uploads/videos/${req.files.video[0].filename}` : null;
+    // ✅ Fix: access [0] from multer file array
+    const photo = req.files?.photo?.[0]
+      ? `/uploads/images/${req.files.photo[0].filename}`
+      : null;
+
+    const video = req.files?.video?.[0]
+      ? `/uploads/videos/${req.files.video[0].filename}`
+      : null;
 
     const newRecipe = new Recipe({
       title,
