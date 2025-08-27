@@ -203,7 +203,7 @@ export const removeFavorite = async (req, res) => {
     res.status(500).json({ message: "Server error" });
   }
 };
-/*
+
 // Get all favorite recipes
 export const getFavorites = async (req, res) => {
   try {
@@ -214,25 +214,4 @@ export const getFavorites = async (req, res) => {
     res.status(500).json({ message: "Server error" });
   }
 };
-*/
-import mongoose from "mongoose";
 
-export const getFavorites = async (req, res) => {
-  try {
-    const user = await User.findById(req.user._id);
-    if (!user) return res.status(404).json({ message: "User not found" });
-
-    // Filter out invalid ObjectIds
-    const validFavorites = user.favorites.filter(id =>
-      mongoose.Types.ObjectId.isValid(id)
-    );
-
-    // Fetch only existing recipes
-    const favorites = await Recipe.find({ _id: { $in: validFavorites } });
-
-    res.json(favorites);
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ message: "Server error" });
-  }
-};
