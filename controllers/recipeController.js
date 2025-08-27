@@ -204,7 +204,7 @@ export const removeFavorite = async (req, res) => {
   }
 };
 
-// Get all favorite recipes
+/*// Get all favorite recipes
 export const getFavorites = async (req, res) => {
   try {
     const user = await User.findById(req.user._id).populate("favorites");
@@ -214,4 +214,4 @@ export const getFavorites = async (req, res) => {
     res.status(500).json({ message: "Server error" });
   }
 };
-
+*/
