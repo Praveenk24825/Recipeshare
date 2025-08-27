@@ -33,8 +33,8 @@ router.put(
 );
 router.delete("/:id", deleteRecipe);
 
-router.post("/:id/comment", addComment);
-router.post("/:id/rating", addRating);
+router.post("/:id/comment", protect, addComment);
+router.post("/:id/rating", protect, addRating);
 
 
 router.post("/favorites", protect, addFavorite);
