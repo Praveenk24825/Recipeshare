@@ -37,7 +37,6 @@ router.post("/:id/comment", protect, addComment);
 router.put("/:id/rating", protect, addRating);
 router.get("/favorites", protect, getFavorites); 
 
-router.get("/:id", getRecipeById);
 
 router.post("/favorites", protect, addFavorite);
 router.delete("/favorites", protect, removeFavorite);
