@@ -10,6 +10,7 @@ import {
   addRating,
   addFavorite,
   removeFavorite,
+   getFavorites,
 } from "../controllers/recipeController.js";
 import { protect } from "../middleware/authMiddleware.js";
 
@@ -34,7 +35,7 @@ router.delete("/:id", protect, deleteRecipe);
 
 router.post("/:id/comment", protect, addComment);
 router.put("/:id/rating", protect, addRating);
-
+router.get("/favorites", protect, getFavorites); 
 
 router.post("/favorites", protect, addFavorite);
 router.delete("/favorites", protect, removeFavorite);

@@ -165,53 +165,59 @@ export const addRating = async (req, res) => {
   }
 };
 
+// ... (all other functions remain the same)
 
 // Add favorite
 export const addFavorite = async (req, res) => {
-  try {
-    const user = await User.findById(req.user._id);
-    if (!user) return res.status(404).json({ message: "User not found" });
+    try {
+        const user = await User.findById(req.user._id);
+        if (!user) return res.status(404).json({ message: "User not found" });
 
-    const { recipeId } = req.body;
-    if (!recipeId) return res.status(400).json({ message: "Recipe ID required" });
+        const { recipeId } = req.body;
+        if (!recipeId) return res.status(400).json({ message: "Recipe ID required" });
 
-    if (!user.favorites.includes(recipeId)) {
-      user.favorites.push(recipeId);
-      await user.save();
+        if (!user.favorites.includes(recipeId)) {
+            user.favorites.push(recipeId);
+            await user.save();
+        }
+
+        // ✅ Fix: Return the populated user document
+        const populatedUser = await User.findById(req.user._id).populate("favorites");
+        res.json({ favorites: populatedUser.favorites });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ message: "Server error" });
     }
-
-    res.json({ favorites: user.favorites });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ message: "Server error" });
-  }
 };
 
 // Remove favorite
 export const removeFavorite = async (req, res) => {
-  try {
-    const user = await User.findById(req.user._id);
-    if (!user) return res.status(404).json({ message: "User not found" });
+    try {
+        const user = await User.findById(req.user._id);
+        if (!user) return res.status(404).json({ message: "User not found" });
 
-    const { recipeId } = req.body;
-    user.favorites = user.favorites.filter(id => id.toString() !== recipeId);
-    await user.save();
+        const { recipeId } = req.body;
+        user.favorites = user.favorites.filter(id => id.toString() !== recipeId);
+        await user.save();
 
-    res.json({ favorites: user.favorites });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ message: "Server error" });
-  }
+        // ✅ Fix: Return the populated user document
+        const populatedUser = await User.findById(req.user._id).populate("favorites");
+        res.json({ favorites: populatedUser.favorites });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ message: "Server error" });
+    }
 };
 
-/*// Get all favorite recipes
+// Get all favorite recipes
 export const getFavorites = async (req, res) => {
-  try {
-    const user = await User.findById(req.user._id).populate("favorites");
-    res.json(user.favorites);
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ message: "Server error" });
-  }
+    try {
+        const user = await User.findById(req.user._id).populate("favorites");
+        res.json(user.favorites);
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ message: "Server error" });
+    }
 };
-*/
+
+// ... (all other functions remain the same)
