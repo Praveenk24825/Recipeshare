@@ -31,7 +31,7 @@ router.put(
   upload.fields([{ name: "photo", maxCount: 1 }, { name: "video", maxCount: 1 }]),
   updateRecipe
 );
-router.delete("/:id", deleteRecipe);
+router.delete("/:id", protect, deleteRecipe);
 
 router.post("/:id/comment", protect, addComment);
 router.put("/:id/rating", protect, addRating);
