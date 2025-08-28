@@ -1,4 +1,4 @@
-
+/*
 import express from "express";
 import mongoose from "mongoose";
 import dotenv from "dotenv";
@@ -66,7 +66,7 @@ mongoose
     app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
   })
   .catch((err) => console.error("DB connection error:", err));
-
+*/
 /*
 import express from "express";
 import mongoose from "mongoose";
@@ -167,3 +167,75 @@ mongoose
   })
   .catch((err) => console.error("DB connection error:", err));
   */
+
+
+
+import express from "express";
+import mongoose from "mongoose";
+import dotenv from "dotenv";
+import cors from "cors";
+import path from "path";
+import { fileURLToPath } from "url";
+
+// Routes
+import recipeRoutes from "./routes/recipeRoutes.js";
+import userRoutes from "./routes/userRoutes.js";
+import mealPlanRoutes from "./routes/mealPlanRoutes.js";
+import authRoutes from "./routes/authRoutes.js";
+
+// Error handler middleware
+import { errorHandler } from "./middleware/errorMiddleware.js";
+
+dotenv.config();
+const app = express();
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+// CORS
+const allowedOrigins = [
+  "http://localhost:5173",
+  "http://localhost:5175",
+  "https://qwery90.netlify.app",
+];
+
+app.use(
+  cors({
+    origin: function (origin, callback) {
+      if (!origin || allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        callback(new Error("Not allowed by CORS"));
+      }
+    },
+    credentials: true,
+  })
+);
+
+// Middleware
+app.use(express.json());
+
+// Serve uploads correctly
+app.use("/uploads", express.static(path.join(__dirname, "uploads")));
+
+// Routes
+app.use("/api/recipes", recipeRoutes);
+app.use("/api/users", userRoutes);
+app.use("/api/mealplans", mealPlanRoutes);
+app.use("/api/auth", authRoutes);
+
+// Root
+app.get("/", (req, res) => res.send("API running"));
+
+// Error handling
+app.use(errorHandler);
+
+// MongoDB
+mongoose
+  .connect(process.env.MONGO_URI)
+  .then(() => {
+    console.log("MongoDB connected");
+    const PORT = process.env.PORT || 5000;
+    app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+  })
+  .catch((err) => console.error("DB connection error:", err));
