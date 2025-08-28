@@ -67,12 +67,14 @@ mongoose
     app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
   })
   .catch((err) => console.error("DB connection error:", err));
-*/import express from "express";
+*/
+import express from "express";
 import mongoose from "mongoose";
 import dotenv from "dotenv";
 import cors from "cors";
 import path from "path";
 import { fileURLToPath } from "url";
+import helmet from "helmet"; // FIX: Import helmet for Content Security Policy
 
 // Routes
 import recipeRoutes from "./routes/recipeRoutes.js";
@@ -91,6 +93,19 @@ const app = express();
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
+// FIX: Set a Content Security Policy to fix the 'blob' error
+// This policy allows scripts from your own domain and from 'blob' URLs
+app.use(
+  helmet({
+    contentSecurityPolicy: {
+      directives: {
+        "default-src": ["'self'"],
+        "script-src": ["'self'", "blob:"],
+      },
+    },
+  })
+);
+
 // Allowed frontend origins
 const allowedOrigins = [
   "http://localhost:5173",
@@ -98,7 +113,7 @@ const allowedOrigins = [
   "https://qwery90.netlify.app",
 ];
 
-// Global CORS
+// Global CORS (This code was already correct)
 app.use(
   cors({
     origin: function (origin, callback) {
@@ -114,10 +129,16 @@ app.use(
 
 // Middleware
 app.use(express.json());
-app.use(express.urlencoded({ extended: true, limit: "10000mb" })); // increase payload size for images/videos
+app.use(express.urlencoded({ extended: true, limit: "10000mb" }));
 
 // Serve uploaded files correctly
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
+
+// FIX: Add a route for the base /api path to prevent the 404 error
+// Your frontend was likely calling this route, which did not exist.
+app.get("/api", (req, res) => {
+  res.send("API is running...");
+});
 
 // Routes
 app.use("/api/recipes", recipeRoutes);
