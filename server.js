@@ -21,7 +21,7 @@ const app = express();
 const allowedOrigins = [
   "http://localhost:5173",
   "http://localhost:5175",                 // local dev
-  "https://your-frontend-domain.com",     // replace with your deployed frontend
+  "https://qwery90.netlify.app/",     // replace with your deployed frontend
 ];
 
 // CORS middleware
