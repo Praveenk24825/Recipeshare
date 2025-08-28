@@ -67,8 +67,7 @@ mongoose
     app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
   })
   .catch((err) => console.error("DB connection error:", err));
-*/
-import express from "express";
+*/import express from "express";
 import mongoose from "mongoose";
 import dotenv from "dotenv";
 import cors from "cors";
@@ -86,7 +85,7 @@ import { errorHandler } from "./middleware/errorMiddleware.js";
 
 dotenv.config();
 
-const app = express(); // ✅ Make sure app is defined first
+const app = express();
 
 // For __dirname in ES modules
 const __filename = fileURLToPath(import.meta.url);
@@ -99,7 +98,7 @@ const allowedOrigins = [
   "https://qwery90.netlify.app",
 ];
 
-// ✅ Global CORS
+// Global CORS
 app.use(
   cors({
     origin: function (origin, callback) {
@@ -115,8 +114,9 @@ app.use(
 
 // Middleware
 app.use(express.json());
+app.use(express.urlencoded({ extended: true, limit: "10000mb" })); // increase payload size for images/videos
 
-// ✅ Serve uploaded files correctly
+// Serve uploaded files correctly
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
 // Routes
