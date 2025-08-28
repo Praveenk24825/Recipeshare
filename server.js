@@ -72,6 +72,8 @@ import express from "express";
 import mongoose from "mongoose";
 import dotenv from "dotenv";
 import cors from "cors";
+import path from "path";
+import { fileURLToPath } from "url";
 
 // Routes
 import recipeRoutes from "./routes/recipeRoutes.js";
@@ -83,35 +85,39 @@ import authRoutes from "./routes/authRoutes.js";
 import { errorHandler } from "./middleware/errorMiddleware.js";
 
 dotenv.config();
-const app = express();
+
+const app = express(); // ✅ Make sure app is defined first
+
+// For __dirname in ES modules
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 // Allowed frontend origins
 const allowedOrigins = [
   "http://localhost:5173",
-  "http://localhost:5175",          // local dev
-  "https://qwery90.netlify.app",   // deployed frontend
+  "http://localhost:5175",
+  "https://qwery90.netlify.app",
 ];
 
-// CORS middleware
+// ✅ Global CORS
 app.use(
   cors({
     origin: function (origin, callback) {
-      // Allow requests with no origin (like Postman or server-to-server)
       if (!origin || allowedOrigins.includes(origin)) {
         callback(null, true);
       } else {
         callback(new Error("Not allowed by CORS"));
       }
     },
-    credentials: true, // allow cookies/session
+    credentials: true,
   })
 );
 
 // Middleware
 app.use(express.json());
 
-// Serve uploaded files
-app.use("/uploads", express.static("uploads"));
+// ✅ Serve uploaded files correctly
+app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
 // Routes
 app.use("/api/recipes", recipeRoutes);
