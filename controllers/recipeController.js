@@ -2,18 +2,21 @@ import Recipe from "../models/Recipe.js";
 import User from "../models/User.js";
 import cloudinary from "../config/cloudinary.js";
 
-// Helper for Cloudinary upload
-const uploadToCloudinary = async (filePath, folder, resourceType = "image") => {
-  try {
-    const result = await cloudinary.uploader.upload(filePath, { folder, resource_type: resourceType });
-    return result.secure_url;
-  } catch (err) {
-    console.error(`Cloudinary upload error (${resourceType}):`, err);
-    throw new Error(`Failed to upload ${resourceType}`);
-  }
-};
 
-// Create recipe
+// Helper to upload buffer to Cloudinary
+const uploadBufferToCloudinary = (fileBuffer, folder, resourceType = "image") => {
+  return new Promise((resolve, reject) => {
+    const stream = cloudinary.uploader.upload_stream(
+      { folder, resource_type: resourceType },
+      (error, result) => {
+        if (error) return reject(error);
+        resolve(result.secure_url);
+      }
+    );
+    stream.end(fileBuffer);
+  });
+};
+// CREATE Recipe
 export const createRecipe = async (req, res) => {
   try {
     const { title, description, ingredients, steps, cookingTime, servings } = req.body;
@@ -22,8 +25,12 @@ export const createRecipe = async (req, res) => {
     let photoUrl = null;
     let videoUrl = null;
 
-    if (req.files?.photo?.[0]) photoUrl = await uploadToCloudinary(req.files.photo[0].path, "recipes/images");
-    if (req.files?.video?.[0]) videoUrl = await uploadToCloudinary(req.files.video[0].path, "recipes/videos", "video");
+    if (req.files?.photo?.[0]) {
+      photoUrl = await uploadBufferToCloudinary(req.files.photo[0].buffer, "recipes/images");
+    }
+    if (req.files?.video?.[0]) {
+      videoUrl = await uploadBufferToCloudinary(req.files.video[0].buffer, "recipes/videos", "video");
+    }
 
     const newRecipe = new Recipe({
       title,
@@ -69,7 +76,7 @@ export const getRecipeById = async (req, res) => {
   }
 };
 
-// Update recipe
+// UPDATE Recipe
 export const updateRecipe = async (req, res) => {
   try {
     const recipe = await Recipe.findById(req.params.id);
@@ -84,8 +91,12 @@ export const updateRecipe = async (req, res) => {
     recipe.cookingTime = cookingTime || recipe.cookingTime;
     recipe.servings = servings || recipe.servings;
 
-    if (req.files?.photo?.[0]) recipe.photo = await uploadToCloudinary(req.files.photo[0].path, "recipes/images");
-    if (req.files?.video?.[0]) recipe.video = await uploadToCloudinary(req.files.video[0].path, "recipes/videos", "video");
+    if (req.files?.photo?.[0]) {
+      recipe.photo = await uploadBufferToCloudinary(req.files.photo[0].buffer, "recipes/images");
+    }
+    if (req.files?.video?.[0]) {
+      recipe.video = await uploadBufferToCloudinary(req.files.video[0].buffer, "recipes/videos", "video");
+    }
 
     await recipe.save();
     res.json(recipe);
@@ -94,7 +105,6 @@ export const updateRecipe = async (req, res) => {
     res.status(500).json({ message: err.message });
   }
 };
-
 // Delete recipe
 export const deleteRecipe = async (req, res) => {
   try {
