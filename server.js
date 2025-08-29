@@ -67,14 +67,14 @@ mongoose
   })
   .catch((err) => console.error("DB connection error:", err));
 */
-
+// server.js
 import express from "express";
 import mongoose from "mongoose";
 import dotenv from "dotenv";
 import cors from "cors";
 import path from "path";
 import { fileURLToPath } from "url";
-import helmet from "helmet"; // FIX: Import helmet for Content Security Policy
+import helmet from "helmet";
 
 // Routes
 import recipeRoutes from "./routes/recipeRoutes.js";
@@ -93,27 +93,27 @@ const app = express();
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// FIX: Set a Content Security Policy to fix the 'blob' error
-// This policy allows scripts from your own domain and from 'blob' URLs
+// ✅ Security middleware (allow self + blob: for video preview)
 app.use(
   helmet({
     contentSecurityPolicy: {
       directives: {
-        "default-src": ["'self'"],
-        "script-src": ["'self'", "blob:"],
+        defaultSrc: ["'self'"],
+        scriptSrc: ["'self'", "blob:"],
+        mediaSrc: ["'self'", "blob:"], // allow video/audio
       },
     },
   })
 );
 
-// Allowed frontend origins
+// ✅ Allowed frontend origins
 const allowedOrigins = [
   "http://localhost:5173",
   "http://localhost:5175",
   "https://qwery90.netlify.app",
 ];
 
-// Global CORS (This code was already correct)
+// ✅ Global CORS
 app.use(
   cors({
     origin: function (origin, callback) {
@@ -127,46 +127,45 @@ app.use(
   })
 );
 
-// Middleware
+// ✅ Middleware
 app.use(express.json());
-app.use(express.urlencoded({ extended: true, limit: "10000mb" }));
+app.use(express.urlencoded({ extended: true, limit: "50mb" }));
 
-// Serve uploaded files correctly
+// ✅ Serve uploaded files (images/videos)
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
-// FIX: Add a route for the base /api path to prevent the 404 error
-// Your frontend was likely calling this route, which did not exist.
+// ✅ Test route for API root
 app.get("/api", (req, res) => {
   res.send("API is running...");
 });
 
-// Routes
+// ✅ Routes
 app.use("/api/recipes", recipeRoutes);
 app.use("/api/users", userRoutes);
 app.use("/api/mealplans", mealPlanRoutes);
 app.use("/api/auth", authRoutes);
 
-// Root route
+// ✅ Root route
 app.get("/", (req, res) => {
-  res.send("API is running...");
+  res.send("Server is running...");
 });
 
-// Error handling middleware
+// ✅ Error handler
 app.use(errorHandler);
 
-// MongoDB connection
+// ✅ MongoDB connection + server start
 mongoose
   .connect(process.env.MONGO_URI, {
     useNewUrlParser: true,
     useUnifiedTopology: true,
   })
   .then(() => {
-    console.log("MongoDB connected");
+    console.log("✅ MongoDB connected");
     const PORT = process.env.PORT || 5000;
-    app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+    app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
   })
-  .catch((err) => console.error("DB connection error:", err));
- 
+  .catch((err) => console.error("❌ DB connection error:", err));
+
 
 
 /*
