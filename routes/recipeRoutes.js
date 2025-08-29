@@ -68,6 +68,7 @@ const router = express.Router();
 // Create recipe with image & video
 router.post(
   "/",
+  protect,
   upload.fields([{ name: "photo", maxCount: 1 }, { name: "video", maxCount: 1 }]),
   createRecipe
 );
@@ -82,6 +83,7 @@ router.delete("/favorites", protect, removeFavorite);
 router.get("/:id", getRecipeById);
 router.put(
   "/:id",
+  protect,
   upload.fields([{ name: "photo", maxCount: 1 }, { name: "video", maxCount: 1 }]),
   updateRecipe
 );
