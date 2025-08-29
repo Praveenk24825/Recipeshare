@@ -23,8 +23,16 @@ export const createRecipe = async (req, res) => {
     const newRecipe = new Recipe({
       title,
       description,
-      ingredients: ingredients ? ingredients.split(",") : [],
-      steps: steps ? steps.split(",") : [],
+     ingredients: Array.isArray(ingredients)
+        ? ingredients
+        : ingredients
+        ? ingredients.split(",")
+        : [],
+      steps: Array.isArray(steps)
+        ? steps
+        : steps
+        ? steps.split(",")
+        : [],
       cookingTime,
       servings,
       photo,
