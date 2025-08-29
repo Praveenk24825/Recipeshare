@@ -9,7 +9,7 @@ if (!fs.existsSync(imageDir)) fs.mkdirSync(imageDir, { recursive: true });
 if (!fs.existsSync(videoDir)) fs.mkdirSync(videoDir, { recursive: true });
 
 // Multer storage config
-const storage = multer.memoryStorage({
+const storage = multer.diskStorage({
   destination: (req, file, cb) => {
     if (file.mimetype.startsWith("image/")) {
       cb(null, imageDir);
