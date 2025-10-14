@@ -2,6 +2,7 @@
 
 import Recipe from "../models/Recipe.js";
 import User from "../models/User.js";
+import { cloudinary } from "../config/cloudinary.js";
 // Create recipe
 export const createRecipe = async (req, res) => {
   try {
@@ -11,19 +12,30 @@ export const createRecipe = async (req, res) => {
       return res.status(400).json({ message: "Title and description required" });
     }
 
-    // ✅ Fix: access [0] from multer file array
-    const photo = req.files?.photo?.[0]
-      ? `/uploads/images/${req.files.photo[0].filename}`
-      : null;
+    let photoUrl = null;
+    let videoUrl = null;
 
-    const video = req.files?.video?.[0]
-      ? `/uploads/videos/${req.files.video[0].filename}`
-      : null;
+    // Upload photo to Cloudinary if exists
+    if (req.files?.photo?.[0]) {
+      const result = await cloudinary.uploader.upload(req.files.photo[0].path, {
+        folder: "recipes/photos",
+      });
+      photoUrl = result.secure_url;
+    }
+
+    // Upload video to Cloudinary if exists
+    if (req.files?.video?.[0]) {
+      const result = await cloudinary.uploader.upload(req.files.video[0].path, {
+        resource_type: "video",
+        folder: "recipes/videos",
+      });
+      videoUrl = result.secure_url;
+    }
 
     const newRecipe = new Recipe({
       title,
       description,
-     ingredients: Array.isArray(ingredients)
+      ingredients: Array.isArray(ingredients)
         ? ingredients
         : ingredients
         ? ingredients.split(",")
@@ -35,8 +47,8 @@ export const createRecipe = async (req, res) => {
         : [],
       cookingTime,
       servings,
-      photo,
-      video,
+      photo: photoUrl,
+      video: videoUrl,
     });
 
     await newRecipe.save();
@@ -45,7 +57,6 @@ export const createRecipe = async (req, res) => {
     res.status(500).json({ message: err.message });
   }
 };
-
 // Get all recipes (with optional search)
 export const getRecipes = async (req, res) => {
   try {
@@ -74,6 +85,7 @@ export const getRecipeById = async (req, res) => {
 };
 
 // Update recipe
+// Update recipe
 export const updateRecipe = async (req, res) => {
   try {
     const recipe = await Recipe.findById(req.params.id);
@@ -81,16 +93,28 @@ export const updateRecipe = async (req, res) => {
 
     recipe.title = req.body.title || recipe.title;
     recipe.description = req.body.description || recipe.description;
-    recipe.ingredients = req.body.ingredients ? req.body.ingredients.split(",") : recipe.ingredients;
+    recipe.ingredients = req.body.ingredients
+      ? req.body.ingredients.split(",")
+      : recipe.ingredients;
     recipe.steps = req.body.steps ? req.body.steps.split(",") : recipe.steps;
     recipe.cookingTime = req.body.cookingTime || recipe.cookingTime;
     recipe.servings = req.body.servings || recipe.servings;
 
-    if (req.files?.photo) {
-      recipe.photo = `/uploads/images/${req.files.photo[0].filename}`;
+    // Upload new photo if provided
+    if (req.files?.photo?.[0]) {
+      const result = await cloudinary.uploader.upload(req.files.photo[0].path, {
+        folder: "recipes/photos",
+      });
+      recipe.photo = result.secure_url;
     }
-    if (req.files?.video) {
-      recipe.video = `/uploads/videos/${req.files.video[0].filename}`;
+
+    // Upload new video if provided
+    if (req.files?.video?.[0]) {
+      const result = await cloudinary.uploader.upload(req.files.video[0].path, {
+        resource_type: "video",
+        folder: "recipes/videos",
+      });
+      recipe.video = result.secure_url;
     }
 
     await recipe.save();
@@ -99,7 +123,6 @@ export const updateRecipe = async (req, res) => {
     res.status(500).json({ message: err.message });
   }
 };
-
 // Delete recipe
 export const deleteRecipe = async (req, res) => {
   try {
