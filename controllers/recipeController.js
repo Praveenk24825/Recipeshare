@@ -3,19 +3,19 @@
 import Recipe from "../models/Recipe.js";
 import User from "../models/User.js";
 import { cloudinary } from "../config/cloudinary.js";
-// Create recipe
+// Create Recipe
 export const createRecipe = async (req, res) => {
   try {
     const { title, description, ingredients, steps, cookingTime, servings } = req.body;
 
-    if (!title || !description) {
-      return res.status(400).json({ message: "Title and description required" });
+    if (!title?.trim() || !description?.trim()) {
+      return res.status(400).json({ message: "Title and description are required" });
     }
 
     let photoUrl = null;
     let videoUrl = null;
 
-    // Upload photo to Cloudinary if exists
+    // Upload photo if exists
     if (req.files?.photo?.[0]) {
       const result = await cloudinary.uploader.upload(req.files.photo[0].path, {
         folder: "recipes/photos",
@@ -23,7 +23,7 @@ export const createRecipe = async (req, res) => {
       photoUrl = result.secure_url;
     }
 
-    // Upload video to Cloudinary if exists
+    // Upload video if exists
     if (req.files?.video?.[0]) {
       const result = await cloudinary.uploader.upload(req.files.video[0].path, {
         resource_type: "video",
@@ -33,20 +33,16 @@ export const createRecipe = async (req, res) => {
     }
 
     const newRecipe = new Recipe({
-      title,
-      description,
-      ingredients: Array.isArray(ingredients)
-        ? ingredients
-        : ingredients
-        ? ingredients.split(",")
+      title: title.trim(),
+      description: description.trim(),
+      ingredients: ingredients
+        ? ingredients.split(",").map(i => i.trim()).filter(Boolean)
         : [],
-      steps: Array.isArray(steps)
-        ? steps
-        : steps
-        ? steps.split(",")
+      steps: steps
+        ? steps.split(",").map(s => s.trim()).filter(Boolean)
         : [],
-      cookingTime,
-      servings,
+      cookingTime: cookingTime?.trim() || "",
+      servings: servings?.trim() || "",
       photo: photoUrl,
       video: videoUrl,
     });
@@ -54,7 +50,8 @@ export const createRecipe = async (req, res) => {
     await newRecipe.save();
     res.status(201).json(newRecipe);
   } catch (err) {
-    res.status(500).json({ message: err.message });
+    console.error("Create Recipe Error:", err);
+    res.status(500).json({ message: "Server error while creating recipe" });
   }
 };
 // Get all recipes (with optional search)
@@ -84,21 +81,24 @@ export const getRecipeById = async (req, res) => {
   }
 };
 
-// Update recipe
-// Update recipe
+// Update Recipe
 export const updateRecipe = async (req, res) => {
   try {
     const recipe = await Recipe.findById(req.params.id);
     if (!recipe) return res.status(404).json({ message: "Recipe not found" });
 
-    recipe.title = req.body.title || recipe.title;
-    recipe.description = req.body.description || recipe.description;
-    recipe.ingredients = req.body.ingredients
-      ? req.body.ingredients.split(",")
+    const { title, description, ingredients, steps, cookingTime, servings } = req.body;
+
+    recipe.title = title?.trim() || recipe.title;
+    recipe.description = description?.trim() || recipe.description;
+    recipe.ingredients = ingredients
+      ? ingredients.split(",").map(i => i.trim()).filter(Boolean)
       : recipe.ingredients;
-    recipe.steps = req.body.steps ? req.body.steps.split(",") : recipe.steps;
-    recipe.cookingTime = req.body.cookingTime || recipe.cookingTime;
-    recipe.servings = req.body.servings || recipe.servings;
+    recipe.steps = steps
+      ? steps.split(",").map(s => s.trim()).filter(Boolean)
+      : recipe.steps;
+    recipe.cookingTime = cookingTime?.trim() || recipe.cookingTime;
+    recipe.servings = servings?.trim() || recipe.servings;
 
     // Upload new photo if provided
     if (req.files?.photo?.[0]) {
@@ -120,7 +120,8 @@ export const updateRecipe = async (req, res) => {
     await recipe.save();
     res.json(recipe);
   } catch (err) {
-    res.status(500).json({ message: err.message });
+    console.error("Update Recipe Error:", err);
+    res.status(500).json({ message: "Server error while updating recipe" });
   }
 };
 // Delete recipe
