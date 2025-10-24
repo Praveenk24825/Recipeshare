@@ -1,0 +1,6 @@
+.env/
+node_modules/
+# Ignore uploaded files (keep only folder structure)
+uploads/image/*
+uploads/videos/*
+!uploads/.gitkeep
