@@ -90,7 +90,7 @@ const app = express();
 const allowedOrigins = [
   "http://localhost:5173",
   "http://localhost:5175",                 
-  "https://qwery90.netlify.app",     
+  "https://qwery902.netlify.app",     
 ];
 
 // CORS middleware for API routes
