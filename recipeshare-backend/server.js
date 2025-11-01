@@ -68,10 +68,9 @@ mongoose
   .catch((err) => console.error("DB connection error:", err));
   */
 
-  import express from "express";
+import express from "express";
 import mongoose from "mongoose";
 import dotenv from "dotenv";
-import cors from "cors";
 import path from "path";
 
 // Routes
@@ -80,69 +79,73 @@ import userRoutes from "./routes/userRoutes.js";
 import mealPlanRoutes from "./routes/mealPlanRoutes.js";
 import authRoutes from "./routes/authRoutes.js";
 
-// Error handler middleware
+// Middleware
 import { errorHandler } from "./middleware/errorMiddleware.js";
 
 dotenv.config();
 const app = express();
 
-// Allowed frontend origins
+// ✅ Allowed frontend origins (update if you add another frontend)
 const allowedOrigins = [
   "http://localhost:5173",
-  "http://localhost:5175",                 
-  "https://qwery902.netlify.app",     
+  "http://localhost:5175",
+  "https://qwery902.netlify.app",
 ];
 
-// CORS middleware for API routes
-app.use(
-  cors({
-    origin: function (origin, callback) {
-      if (!origin || allowedOrigins.includes(origin)) {
-        callback(null, true);
-      } else {
-        callback(new Error("Not allowed by CORS"));
-      }
-    },
-    credentials: true,
-  })
-);
+// ✅ CORS setup — handles preflight (OPTIONS) requests too
+app.use((req, res, next) => {
+  const origin = req.headers.origin;
+  if (allowedOrigins.includes(origin)) {
+    res.setHeader("Access-Control-Allow-Origin", origin);
+  }
 
-// Middleware
+  res.setHeader("Access-Control-Allow-Methods", "GET,POST,PUT,DELETE,OPTIONS");
+  res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
+  res.setHeader("Access-Control-Allow-Credentials", "true");
+
+  if (req.method === "OPTIONS") {
+    return res.sendStatus(200);
+  }
+
+  next();
+});
+
+// Middleware to parse JSON bodies
 app.use(express.json());
 
-// Serve uploads folder with CORS headers
+// ✅ Serve uploads folder with public access
 app.use(
   "/uploads",
   (req, res, next) => {
-    res.setHeader("Access-Control-Allow-Origin", "*"); // Allow all origins
+    res.setHeader("Access-Control-Allow-Origin", "*");
     next();
   },
   express.static(path.join(process.cwd(), "uploads"))
 );
 
-// Routes
+// ✅ API Routes
 app.use("/api/recipes", recipeRoutes);
 app.use("/api/users", userRoutes);
 app.use("/api/mealplans", mealPlanRoutes);
 app.use("/api/auth", authRoutes);
 
-// Root route
+// ✅ Root route
 app.get("/", (req, res) => {
   res.send("API is running...");
 });
 
-// Error handling middleware
+// ✅ Global error handler
 app.use(errorHandler);
 
-// MongoDB connection
+// ✅ Connect MongoDB and start server
 mongoose
   .connect(process.env.MONGO_URI, { useNewUrlParser: true, useUnifiedTopology: true })
   .then(() => {
-    console.log("MongoDB connected");
+    console.log("✅ MongoDB connected successfully");
     const PORT = process.env.PORT || 5000;
-    app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+    app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
   })
-  .catch((err) => console.error("DB connection error:", err));
+  .catch((err) => console.error("❌ MongoDB connection error:", err));
 
 
 /*
