@@ -2,7 +2,7 @@
 
 import Recipe from "../models/Recipe.js";
 import User from "../models/User.js";
-import { cloudinary } from "../config/cloudinary.js";
+import cloudinary from "../config/cloudinary.js";
 // Create Recipe
 export const createRecipe = async (req, res) => {
   try {
